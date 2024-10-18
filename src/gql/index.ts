@@ -10,6 +10,12 @@ export const schema = createSchema({
 			heartbeat: Boolean
 			isPrePermissionless(fid: Int): Boolean
 
+			getTimestampOfEarliestMessage(
+				secret: String
+				salt: String
+				shift: Int
+			): Timestamp!
+
 			getEncryptedData(limit: Int): RestingDataResponse!
 
 			getEnabledChannels: [String!]!

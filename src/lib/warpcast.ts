@@ -17,3 +17,8 @@ export const getChannelMembers = async (channelId: string) => {
 
 	return res.result.members;
 };
+
+// https://docs.farcaster.xyz/learn/what-is-farcaster/messages#timestamps
+export const FarcasterEpochToUnixEpoch = (timestamp: string) => {
+	return Number(timestamp) + Number(1609459200);
+};

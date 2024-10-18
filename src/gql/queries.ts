@@ -5,6 +5,7 @@ import { decrypt } from '../lib/aes-gcm';
 import { hash } from '../lib/hashUtils';
 import { getCastByHash } from '../lib/hub';
 import { listEnabledChannels } from '../lib/redis';
+import { FarcasterEpochToUnixEpoch } from '../lib/warpcast';
 import { CFContext, EncryptedPacket, ExternalData, ExternalDataSchema } from '../types';
 import { checkEligibility } from '../utils/perms';
 import { GetDecryptedDataArgs, GetDecryptedMessageByFidArgs, GetDecryptedMessagesByFidArgs, GetTextByCastHashArgs } from './types';
@@ -13,6 +14,46 @@ export const Query = {
 	heartbeat: () => true,
 	isPrePermissionless: (_: any, { fid }: { fid: number }) => {
 		return fid === undefined ? false : fid < 20939;
+	},
+	getTimestampOfEarliestMessage: async (
+		_: any,
+		{ secret, salt, shift }: { secret: string; salt: string; shift: number },
+		{ env }: CFContext
+	) => {
+		try {
+			// Use provided { secret, salt, shift }, or fallback to ctx.env values
+			const effectiveSecret = secret || env.SECRET;
+
+			// get the cast from the database
+			const sqlStatement = `
+                SELECT
+                    encrypted_message
+                FROM stored_data 
+                WHERE shifted_timestamp > 1
+					AND schema_version = '${SCHEMA}'
+				ORDER BY shifted_timestamp ASC
+                LIMIT 20
+            `;
+			const stmt = env.D1.prepare(sqlStatement);
+
+			// TODO: check each packet for valid decryption, and return the earliest valid timestamp
+			// this will only become necessary when we have multiple shifts in the db
+			const result = await stmt.first<{ encrypted_message: string }>();
+
+			if (!result) {
+				return undefined;
+			}
+
+			// decrypt and return the cast
+			const encryptedMessage = JSON.parse(result.encrypted_message) as EncryptedPacket;
+			const decryptedMessage = await decrypt(encryptedMessage, effectiveSecret);
+			const messageObj = JSON.parse(decryptedMessage) as ExternalData;
+
+			return FarcasterEpochToUnixEpoch(messageObj.timestamp);
+		} catch (error) {
+			console.error('Error in getEarliestMessage:', error);
+			throw new Error('Failed to retrieve earliest message');
+		}
 	},
 	getEnabledChannels: async () => {
 		try {
