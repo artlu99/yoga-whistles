@@ -1,0 +1,3 @@
+- endpoint to show earliest cast in encrypted db
+- mutation to prune old casts
+- tests for all resolvers in schema
