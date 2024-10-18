@@ -44,3 +44,7 @@ export const getChannelMembersSwr = async (channelId: string) => {
 
 	return res;
 };
+
+export const markFidForPruning = async (fid: number) => {
+	await redis.sadd('prune-fids', fid);
+};

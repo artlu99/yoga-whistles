@@ -288,12 +288,13 @@ export const Query = {
 		const hasKeccak256HashRe = castObject.text.match(/[a-fA-F0-9]{64}/); // Regular expression to find a Keccak256 hash
 		const keccak256Hash = hasKeccak256HashRe ? hasKeccak256HashRe[0] : null; // Extract the hash or set to null if not found
 		const isEligible =
-			isCastOwner ||
-			(await checkEligibility({
-				castObj: castObject,
-				viewerFid,
-			}));
-		if (keccak256Hash && isEligible) {
+			keccak256Hash &&
+			(isCastOwner ||
+				(await checkEligibility({
+					castObj: castObject,
+					viewerFid,
+				})));
+		if (isEligible) {
 			// Use provided { secret, salt, shift }, or fallback to ctx.env values
 			const effectiveSecret = secret || env.SECRET;
 			const effectiveSalt = salt || env.SALT;
