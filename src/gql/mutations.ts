@@ -18,11 +18,11 @@ export const Mutation = {
 			throw new Error('Missing required fields');
 		}
 
-		const nonceValidFlag = await isValidNonce(nonce, env);
+		const nonceValidFlag = await isValidNonce(nonce);
 		if (!nonceValidFlag) {
 			throw new Error('Invalid or expired nonce: ' + nonce);
 		} else if (nonceValidFlag) {
-			await invalidateNonce(nonce, env);
+			await invalidateNonce(nonce);
 		}
 
 		const dataToStore = await prepareExternalDataForStorage({
@@ -74,14 +74,14 @@ export const Mutation = {
 			throw new Error('Missing required fields');
 		}
 
-		const nonceValidFlag = await isValidNonce(nonce, env);
+		const nonceValidFlag = await isValidNonce(nonce);
 		if (!nonceValidFlag) {
 			throw new Error('Invalid or expired nonce: ' + nonce);
 		} else if (nonceValidFlag) {
-			await invalidateNonce(nonce, env);
+			await invalidateNonce(nonce);
 		}
 
-		await enableChannel(channelId, parentUrl, env);
+		await enableChannel(channelId, parentUrl);
 
 		return { success: true, message: 'Channel enabled successfully' };
 	},
