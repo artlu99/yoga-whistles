@@ -22,6 +22,10 @@ export const enableChannel = async (channelId: string, channelUrl: string) => {
 	await redis.hset('channels', { [channelId]: channelUrl });
 };
 
+export const disableChannel = async (channelId: string) => {
+	await redis.hdel('channels', channelId);
+};
+
 export const listEnabledChannels = async () => {
 	const res = await redis.hkeys('channels');
 	return res;

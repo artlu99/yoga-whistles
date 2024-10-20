@@ -13,6 +13,11 @@ export interface EnableChannelInput {
 	nonce?: string;
 }
 
+export interface DisableChannelInput {
+	channelId: string;
+	nonce?: string;
+}
+
 export interface GetDecryptedDataArgs {
 	messageId: string;
 	bearerToken?: string;

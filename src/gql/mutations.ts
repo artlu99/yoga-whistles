@@ -1,28 +1,31 @@
 import { SCHEMA } from '../constants';
 import { isValidAuthHeader } from '../helpers';
-import { enableChannel, invalidateNonce, isValidNonce } from '../lib/redis';
+import { disableChannel, enableChannel, invalidateNonce, isValidNonce } from '../lib/redis';
 import { CFContext } from '../types';
 import { prepareExternalDataForStorage } from '../utils/e2e';
-import { AuthorizedPlaintextMessage, EnableChannelInput } from './types';
+import { AuthorizedPlaintextMessage, DisableChannelInput, EnableChannelInput } from './types';
 
+const checkTokenAndNonce = async (props: { request: Request<unknown, CfProperties<unknown>>; nonce?: string }): Promise<void> => {
+	const { request, nonce } = props;
+	const isTokenValid = await isValidAuthHeader(request?.headers);
+	if (!isTokenValid) {
+		throw new Error('Invalid or expired token');
+	}
+
+	const nonceValidFlag = await isValidNonce(nonce);
+	if (!nonceValidFlag) {
+		throw new Error('Invalid or expired nonce: ' + nonce);
+	} else if (nonceValidFlag) {
+		await invalidateNonce(nonce);
+	}
+};
 export const Mutation = {
 	updateData: async (_: any, { input }: { input: AuthorizedPlaintextMessage }, { env, request }: CFContext) => {
-		const isTokenValid = await isValidAuthHeader(request?.headers);
-		if (!isTokenValid) {
-			throw new Error('Invalid or expired token');
-		}
+		await checkTokenAndNonce({ request, nonce: input.nonce });
 
-		const { fid, timestamp, messageHash, text, hashedText, nonce } = input;
-
+		const { fid, timestamp, messageHash, text, hashedText } = input;
 		if (!fid || !timestamp || !messageHash || !text || !hashedText) {
 			throw new Error('Missing required fields');
-		}
-
-		const nonceValidFlag = await isValidNonce(nonce);
-		if (!nonceValidFlag) {
-			throw new Error('Invalid or expired nonce: ' + nonce);
-		} else if (nonceValidFlag) {
-			await invalidateNonce(nonce);
 		}
 
 		const dataToStore = await prepareExternalDataForStorage({
@@ -63,26 +66,27 @@ export const Mutation = {
 		return { success: true, message: 'Data updated successfully' };
 	},
 	enableChannel: async (_: any, { input }: { input: EnableChannelInput }, { env, request }: CFContext) => {
-		const isTokenValid = await isValidAuthHeader(request?.headers);
-		if (!isTokenValid) {
-			throw new Error('Invalid or expired token');
-		}
+		await checkTokenAndNonce({ request, nonce: input.nonce });
 
-		const { channelId, parentUrl, nonce } = input;
-
+		const { channelId, parentUrl } = input;
 		if (!channelId || !parentUrl) {
 			throw new Error('Missing required fields');
-		}
-
-		const nonceValidFlag = await isValidNonce(nonce);
-		if (!nonceValidFlag) {
-			throw new Error('Invalid or expired nonce: ' + nonce);
-		} else if (nonceValidFlag) {
-			await invalidateNonce(nonce);
 		}
 
 		await enableChannel(channelId, parentUrl);
 
 		return { success: true, message: 'Channel enabled successfully' };
 	},
+	disableChannel: async (_: any, { input }: { input: DisableChannelInput }, { env, request }: CFContext) => {
+		await checkTokenAndNonce({ request, nonce: input.nonce });
+
+		const { channelId } = input;
+		if (!channelId) {
+			throw new Error('Missing required fields');
+		}
+
+		await disableChannel(channelId);
+
+		return { success: true, message: 'Channel disabled successfully' };
+	}
 };

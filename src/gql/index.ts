@@ -14,11 +14,7 @@ export const schema = createSchema({
 
 			isPrePermissionless(fid: Int): Boolean
 
-			getTimestampOfEarliestMessage(
-				secret: String
-				salt: String
-				shift: Int
-			): Timestamp!
+			getTimestampOfEarliestMessage(secret: String, salt: String, shift: Int): Timestamp!
 
 			getEncryptedData(limit: Int): RestingDataResponse!
 
@@ -67,7 +63,7 @@ export const schema = createSchema({
 		}
 
 		type Mutation {
-			enableChannel(input: EnableChannelInput!): EnableChannelResponse!
+			enableChannel(input: EnableChannelInput!): EnableDisableChannelResponse!
 		}
 
 		input EnableChannelInput {
@@ -76,9 +72,18 @@ export const schema = createSchema({
 			nonce: String
 		}
 
-		type EnableChannelResponse {
+		type EnableDisableChannelResponse {
 			success: Boolean!
 			message: String
+		}
+
+		type Mutation {
+			disableChannel(input: DisableChannelInput!): EnableDisableChannelResponse!
+		}
+
+		input DisableChannelInput {
+			channelId: String!
+			nonce: String
 		}
 
 		input SortOrder {
