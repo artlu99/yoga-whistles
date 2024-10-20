@@ -1,5 +1,5 @@
 import { SCHEMA } from '../constants';
-import { isValidAuthHeader } from '../helpers';
+import { hasClientToken, isValidAuthHeader } from '../helpers';
 import { disableChannel, enableChannel, invalidateNonce, isValidNonce } from '../lib/redis';
 import { CFContext } from '../types';
 import { prepareExternalDataForStorage } from '../utils/e2e';
@@ -69,7 +69,7 @@ export const Mutation = {
 		return { success: true, message: 'Data updated successfully' };
 	},
 	enableChannel: async (_: any, { input }: { input: EnableChannelInput }, { env, request }: CFContext) => {
-		await checkToken(request);
+		await hasClientToken(request.headers);
 
 		const { channelId, parentUrl } = input;
 		if (!channelId || !parentUrl) {
@@ -81,7 +81,7 @@ export const Mutation = {
 		return { success: true, message: 'Channel enabled successfully' };
 	},
 	disableChannel: async (_: any, { input }: { input: DisableChannelInput }, { env, request }: CFContext) => {
-		await checkToken(request);
+		await hasClientToken(request.headers);
 
 		const { channelId } = input;
 		if (!channelId) {
@@ -89,7 +89,6 @@ export const Mutation = {
 		}
 
 		await disableChannel(channelId);
-
 		return { success: true, message: 'Channel disabled successfully' };
 	},
 };
