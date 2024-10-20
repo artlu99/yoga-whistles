@@ -1,2 +1,5 @@
+- db migration to identify secrets/salts/shifts for earliest timestamp check
+- mutation to disable channel
 - mutation to prune old casts
 - tests for all resolvers in schema
+- more sophisticated rules for non-channel casts

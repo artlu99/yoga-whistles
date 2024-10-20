@@ -1,5 +1,5 @@
 import { Validator } from '@cfworker/json-schema';
-import { SCHEMA } from '../constants';
+import { LOOKBACK_WINDOW, PRUNE_INTERVAL, SCHEMA } from '../constants';
 import { hasClientToken, isValidAuthHeader, verifyToken } from '../helpers';
 import { decrypt } from '../lib/aes-gcm';
 import { hash } from '../lib/hashUtils';
@@ -12,6 +12,8 @@ import { GetDecryptedDataArgs, GetDecryptedMessageByFidArgs, GetDecryptedMessage
 
 export const Query = {
 	heartbeat: () => true,
+	lookbackWindow: () => LOOKBACK_WINDOW,
+	pruneInterval: () => PRUNE_INTERVAL,
 	isPrePermissionless: (_: any, { fid }: { fid: number }) => {
 		return fid === undefined ? false : fid < 20939;
 	},

@@ -8,6 +8,10 @@ export const schema = createSchema({
 
 		type Query {
 			heartbeat: Boolean
+
+			lookbackWindow: Int!
+			pruneInterval: Int!
+
 			isPrePermissionless(fid: Int): Boolean
 
 			getTimestampOfEarliestMessage(
