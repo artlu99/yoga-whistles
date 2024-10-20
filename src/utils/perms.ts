@@ -14,13 +14,16 @@ export const checkEligibility = async (props: { castObj: CastObject; viewerFid: 
 		return false;
 	}
 
-	// check if the channel has been opted in by the channel owner
 	if (channelId) {
+		// check if the channel has been opted in by the channel owner
 		const enabledChannels = await listEnabledChannels();
 		if (!enabledChannels.includes(channelId)) {
 			console.error('channel is not enabled');
 			return false;
 		}
+	} else {
+		// The Shoni Rule - https://warpcast.com/shoni.eth/0xc9eaf251
+		return true; // TODO: more sophisticated logic for non-channel casts
 	}
 
 	const members = channelId ? await getChannelMembersSwr(channelId) : [];
