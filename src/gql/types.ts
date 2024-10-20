@@ -10,12 +10,10 @@ export interface AuthorizedPlaintextMessage {
 export interface EnableChannelInput {
 	channelId: string;
 	parentUrl: string;
-	nonce?: string;
 }
 
 export interface DisableChannelInput {
 	channelId: string;
-	nonce?: string;
 }
 
 export interface GetDecryptedDataArgs {

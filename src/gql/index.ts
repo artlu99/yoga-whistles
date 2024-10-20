@@ -69,7 +69,6 @@ export const schema = createSchema({
 		input EnableChannelInput {
 			channelId: String!
 			parentUrl: String!
-			nonce: String
 		}
 
 		type EnableDisableChannelResponse {
@@ -83,7 +82,6 @@ export const schema = createSchema({
 
 		input DisableChannelInput {
 			channelId: String!
-			nonce: String
 		}
 
 		input SortOrder {

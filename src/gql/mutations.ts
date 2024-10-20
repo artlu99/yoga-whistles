@@ -5,13 +5,14 @@ import { CFContext } from '../types';
 import { prepareExternalDataForStorage } from '../utils/e2e';
 import { AuthorizedPlaintextMessage, DisableChannelInput, EnableChannelInput } from './types';
 
-const checkTokenAndNonce = async (props: { request: Request<unknown, CfProperties<unknown>>; nonce?: string }): Promise<void> => {
-	const { request, nonce } = props;
+const checkToken = async (request: Request<unknown, CfProperties<unknown>>): Promise<void> => {
 	const isTokenValid = await isValidAuthHeader(request?.headers);
 	if (!isTokenValid) {
 		throw new Error('Invalid or expired token');
 	}
+};
 
+const checkNonce = async (nonce: string | undefined): Promise<void> => {
 	const nonceValidFlag = await isValidNonce(nonce);
 	if (!nonceValidFlag) {
 		throw new Error('Invalid or expired nonce: ' + nonce);
@@ -19,9 +20,11 @@ const checkTokenAndNonce = async (props: { request: Request<unknown, CfPropertie
 		await invalidateNonce(nonce);
 	}
 };
+
 export const Mutation = {
 	updateData: async (_: any, { input }: { input: AuthorizedPlaintextMessage }, { env, request }: CFContext) => {
-		await checkTokenAndNonce({ request, nonce: input.nonce });
+		await checkToken(request);
+		await checkNonce(input.nonce);
 
 		const { fid, timestamp, messageHash, text, hashedText } = input;
 		if (!fid || !timestamp || !messageHash || !text || !hashedText) {
@@ -66,7 +69,7 @@ export const Mutation = {
 		return { success: true, message: 'Data updated successfully' };
 	},
 	enableChannel: async (_: any, { input }: { input: EnableChannelInput }, { env, request }: CFContext) => {
-		await checkTokenAndNonce({ request, nonce: input.nonce });
+		await checkToken(request);
 
 		const { channelId, parentUrl } = input;
 		if (!channelId || !parentUrl) {
@@ -78,7 +81,7 @@ export const Mutation = {
 		return { success: true, message: 'Channel enabled successfully' };
 	},
 	disableChannel: async (_: any, { input }: { input: DisableChannelInput }, { env, request }: CFContext) => {
-		await checkTokenAndNonce({ request, nonce: input.nonce });
+		await checkToken(request);
 
 		const { channelId } = input;
 		if (!channelId) {
@@ -88,5 +91,5 @@ export const Mutation = {
 		await disableChannel(channelId);
 
 		return { success: true, message: 'Channel disabled successfully' };
-	}
+	},
 };
