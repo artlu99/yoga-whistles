@@ -116,6 +116,7 @@ export const schema = createSchema({
 			timestamp: Timestamp!
 			castHash: String!
 			text: String!
+			decodedText: String
 			isDecrypted: Boolean!
 		}
 	`,

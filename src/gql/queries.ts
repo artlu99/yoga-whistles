@@ -282,9 +282,9 @@ export const Query = {
 		}
 
 		// if cast has a Keccak256 hash AND viewerFid has access to the cast
-		// 		 decrypt and return the cast
+		// 		decrypt and return the cast
 		// else
-		// 	 return the cast
+		// 	 	return the cast
 
 		const isCastOwner = castObject.author.fid === viewerFid;
 		const hasKeccak256HashRe = castObject.text.match(/[a-fA-F0-9]{64}/); // Regular expression to find a Keccak256 hash
@@ -329,6 +329,7 @@ export const Query = {
 				isDecrypted: true,
 				fid: castObject.author.fid,
 				timestamp: castObject.timestamp,
+				decodedText: messageObj.text,
 				text: messageObj.text ? castObject.text.replace(keccak256Hash, messageObj.text) : castObject.text,
 			};
 		}
