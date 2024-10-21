@@ -27,7 +27,7 @@ export interface GetDecryptedMessagesByFidArgs {
 	fid: number;
 	bearerToken?: string;
 	limit?: number;
-	sortOrder?: { asc: true };
+	order?: { asc: true };
 	secret?: string;
 	salt?: string;
 	shift?: number;

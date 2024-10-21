@@ -153,7 +153,7 @@ export const Query = {
 	},
 	getDecryptedMessagesByFid: async (
 		_: any,
-		{ fid, bearerToken, limit = 10, sortOrder = { asc: true }, secret, salt, shift }: GetDecryptedMessagesByFidArgs,
+		{ fid, bearerToken, limit = 10, order = { asc: true }, secret, salt, shift }: GetDecryptedMessagesByFidArgs,
 		{ env, request }: CFContext
 	) => {
 		const verified = await verifyToken(bearerToken);
@@ -177,7 +177,7 @@ export const Query = {
                 FROM stored_data 
                 WHERE salted_hashed_fid = ?
                 AND schema_version = '${SCHEMA}'
-                ORDER BY shifted_timestamp ${sortOrder.asc ? 'ASC' : 'DESC'}
+                ORDER BY shifted_timestamp ${order.asc ? 'ASC' : 'DESC'}
             `;
 			const params = [saltedHashedFid];
 
