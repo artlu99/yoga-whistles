@@ -1,5 +1,6 @@
-- db migration to identify secrets/salts/shifts for earliest timestamp check
-- mutation to disable channel
+- add db column for deleted_at. update SQL to check it is NULL 
+- add db column to partition data by secret/salt/shift. use partition for earliest timestamp check
+- endpoints for anonymized analytics
 - mutation to prune old casts
 - tests for all resolvers in schema
 - more sophisticated rules for non-channel casts
