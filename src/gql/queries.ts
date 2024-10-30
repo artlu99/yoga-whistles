@@ -1,3 +1,4 @@
+import { schema } from './index';
 import { Validator } from '@cfworker/json-schema';
 import { LOOKBACK_WINDOW, PRUNE_INTERVAL, SCHEMA } from '../constants';
 import { hasClientToken, isValidAuthHeader, verifyToken } from '../helpers';
@@ -17,12 +18,131 @@ export const Query = {
 	lookbackWindow: () => LOOKBACK_WINDOW,
 	pruneInterval: () => PRUNE_INTERVAL,
 
-	numMessages: () => 42069,
-	numPrunedMessages: () => 0,
-	numFids: () => 69,
-	numPartitions: () => 1,
-	numSchemas: () => 1,
-	maxSchemaVersion: () => 'whistles-1.0.0',
+	numMessages: async (_: any, _args: any, { env }: CFContext) => {
+		try {
+			const sqlStatement = `
+				SELECT COUNT(1) AS cnt
+				FROM stored_data
+				WHERE deleted_at IS NULL
+			`;
+			const stmt = env.D1.prepare(sqlStatement);
+			const result = await stmt.first<{ cnt: number }>();
+
+			if (!result) {
+				throw new Error('Data not found');
+			}
+
+			return result.cnt;
+		} catch (error) {
+			console.error('Error in numMessages:', error);
+			throw new Error('Failed to get numMessages');
+		}
+	},
+	numMessagesMarkedForPruning: async (_: any, _args: any, { env }: CFContext) => {
+		try {
+			const sqlStatement = `
+				SELECT COUNT(1) AS cnt
+				FROM stored_data
+				WHERE deleted_at IS NOT NULL
+			`;
+			const stmt = env.D1.prepare(sqlStatement);
+			const result = await stmt.first<{ cnt: number }>();
+
+			if (!result) {
+				throw new Error('Data not found');
+			}
+
+			return result.cnt;
+		} catch (error) {
+			console.error('Error in numMessagesMarkedForPruning:', error);
+			throw new Error('Failed to get numMessagesMarkedForPruning');
+		}
+	},
+	numFids: async (_: any, _args: any, { env }: CFContext) => {
+		try {
+			const sqlStatement = `
+				SELECT salted_hashed_fid, COUNT(1) AS cnt
+				FROM stored_data
+				WHERE deleted_at IS NULL
+				GROUP BY salted_hashed_fid
+			`;
+			const stmt = env.D1.prepare(sqlStatement);
+			const result = await stmt.all<{ salted_hashed_fid: string; cnt: number }[]>();
+
+			if (!result) {
+				throw new Error('Data not found');
+			}
+
+			return result.results.length;
+		} catch (error) {
+			console.error('Error in numFids:', error);
+			throw new Error('Failed to get numFids');
+		}
+	},
+	numPartitions: async (_: any, _args: any, { env }: CFContext) => {
+		try {
+			const sqlStatement = `
+				SELECT partition_id, COUNT(1) AS cnt
+				FROM stored_data
+				WHERE deleted_at IS NULL
+				GROUP BY partition_id
+			`;
+			const stmt = env.D1.prepare(sqlStatement);
+			const result = await stmt.all<{ partition_id: string; cnt: number }[]>();
+
+			if (!result) {
+				throw new Error('Data not found');
+			}
+
+			return result.results.length;
+		} catch (error) {
+			console.error('Error in numPartitions:', error);
+			throw new Error('Failed to get numPartitions');
+		}
+	},
+	numSchemas: async (_: any, _args: any, { env }: CFContext) => {
+		try {
+			const sqlStatement = `
+				SELECT schema_version, COUNT(1) AS cnt
+				FROM stored_data
+				WHERE deleted_at IS NULL
+				GROUP BY schema_version
+			`;
+			const stmt = env.D1.prepare(sqlStatement);
+			const result = await stmt.all<{ partition_id: string; cnt: number }[]>();
+
+			if (!result) {
+				throw new Error('Data not found');
+			}
+
+			return result.results.length;
+		} catch (error) {
+			console.error('Error in numSchemas:', error);
+			throw new Error('Failed to get numSchemas');
+		}
+	},
+	maxSchemaVersion:  async (_: any, _args: any, { env }: CFContext) => {
+		try {
+			const sqlStatement = `
+				SELECT schema_version
+				FROM stored_data
+				WHERE deleted_at IS NULL
+				ORDER BY schema_version DESC
+				LIMIT 1
+			`;
+			const stmt = env.D1.prepare(sqlStatement);
+			const result = await stmt.first<{ schema_version: string }>();
+
+			if (!result) {
+				throw new Error('Data not found');
+			}
+
+			return result.schema_version;
+		} catch (error) {
+			console.error('Error in maxSchemaVersion:', error);
+			throw new Error('Failed to get maxSchemaVersion');
+		}
+	},
 
 	isPrePermissionless: (_: any, { fid }: { fid: number }) => {
 		return fid === undefined ? false : fid < 20939;

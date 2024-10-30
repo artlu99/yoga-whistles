@@ -13,7 +13,7 @@ export const schema = createSchema({
 			pruneInterval: Int!
 
 			numMessages: Int!
-			numPrunedMessages: Int!
+			numMessagesMarkedForPruning: Int!
 			numFids: Int!
 			numPartitions: Int!
 			numSchemas: Int!
