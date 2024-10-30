@@ -12,6 +12,13 @@ export const schema = createSchema({
 			lookbackWindow: Int!
 			pruneInterval: Int!
 
+			numMessages: Int!
+			numPrunedMessages: Int!
+			numFids: Int!
+			numPartitions: Int!
+			numSchemas: Int!
+			maxSchemaVersion: String!
+			
 			isPrePermissionless(fid: Int): Boolean
 
 			getTimestampOfEarliestMessage(secret: String, salt: String, shift: Int): Timestamp!

@@ -1,5 +1,3 @@
-- add db column to partition data by secret/salt/shift. use partition for earliest timestamp check
-- endpoints for anonymized analytics
 - mutation to prune old casts
 - tests for all resolvers in schema
 - more sophisticated rules for non-channel casts

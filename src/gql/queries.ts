@@ -13,8 +13,17 @@ import { GetDecryptedDataArgs, GetDecryptedMessageByFidArgs, GetDecryptedMessage
 
 export const Query = {
 	heartbeat: () => true,
+
 	lookbackWindow: () => LOOKBACK_WINDOW,
 	pruneInterval: () => PRUNE_INTERVAL,
+
+	numMessages: () => 42069,
+	numPrunedMessages: () => 0,
+	numFids: () => 69,
+	numPartitions: () => 1,
+	numSchemas: () => 1,
+	maxSchemaVersion: () => 'whistles-1.0.0',
+
 	isPrePermissionless: (_: any, { fid }: { fid: number }) => {
 		return fid === undefined ? false : fid < 20939;
 	},
