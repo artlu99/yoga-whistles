@@ -93,6 +93,7 @@ export const schema = createSchema({
 		}
 
 		type RowType {
+			partitionId: String!
 			messageId: String!
 			who: String!
 			when: Timestamp!

@@ -68,6 +68,7 @@ export const StoredDataSchema: Schema = {
 		shiftedTimestamp: { type: 'number' },
 		encryptedMessage: { type: 'string' },
 		obscuredHashedText: { type: 'string' },
+		partitionId: { type: 'string' },
 	},
 };
 export interface StoredData {
@@ -76,4 +77,5 @@ export interface StoredData {
 	shiftedTimestamp: string;
 	encryptedMessage: string;
 	obscuredHashedText: string;
+	partitionId: string;
 }

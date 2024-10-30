@@ -7,6 +7,7 @@ import { getCastByHash } from '../lib/hub';
 import { listEnabledChannels } from '../lib/redis';
 import { FarcasterEpochToUnixEpoch } from '../lib/warpcast';
 import { CFContext, EncryptedPacket, ExternalData, ExternalDataSchema } from '../types';
+import { generatePartitionId } from '../utils/e2e';
 import { checkEligibility } from '../utils/perms';
 import { GetDecryptedDataArgs, GetDecryptedMessageByFidArgs, GetDecryptedMessagesByFidArgs, GetTextByCastHashArgs } from './types';
 
@@ -25,6 +26,10 @@ export const Query = {
 		try {
 			// Use provided { secret, salt, shift }, or fallback to ctx.env values
 			const effectiveSecret = secret || env.SECRET;
+			const effectiveSalt = salt || env.SALT;
+			const effectiveShift = shift || env.SHIFT;
+
+			const partitionId = await generatePartitionId(effectiveSecret, effectiveSalt, effectiveShift);
 
 			// get the cast from the database
 			const sqlStatement = `
@@ -32,6 +37,7 @@ export const Query = {
                     encrypted_message
                 FROM stored_data 
                 WHERE shifted_timestamp > 1
+					AND partition_id = '${partitionId}'
 					AND deleted_at IS NULL
 					AND schema_version = '${SCHEMA}'
 				ORDER BY shifted_timestamp ASC
@@ -75,7 +81,8 @@ export const Query = {
                     salted_hashed_fid,
                     shifted_timestamp,
                     encrypted_message,
-                    obscured_hashed_text
+                    obscured_hashed_text,
+					partition_id
                 FROM stored_data
                 WHERE deleted_at IS NULL AND schema_version = '${SCHEMA}'
                 ORDER BY ROWID DESC
@@ -89,9 +96,11 @@ export const Query = {
 				shifted_timestamp: number;
 				encrypted_message: string;
 				obscured_hashed_text: string;
+				partition_id: string;
 			}>();
 			const rows = result.results.map((row) => {
 				return {
+					partitionId: row.partition_id,
 					messageId: row.obscured_message_id,
 					who: row.salted_hashed_fid,
 					when: row.shifted_timestamp,
@@ -170,6 +179,7 @@ export const Query = {
 			const effectiveSalt = salt || env.SALT;
 			const effectiveShift = shift || env.SHIFT;
 
+			const partitionId = await generatePartitionId(effectiveSecret, effectiveSalt, effectiveShift);
 			const saltedHashedFid = await hash(fid.toString(), effectiveSalt);
 
 			let sqlStatement = `
@@ -179,10 +189,11 @@ export const Query = {
                 FROM stored_data 
                 WHERE salted_hashed_fid = ?
 				AND deleted_at IS NULL
+				AND partition_id = ?
                 AND schema_version = '${SCHEMA}'
                 ORDER BY shifted_timestamp ${order.asc ? 'ASC' : 'DESC'}
             `;
-			const params = [saltedHashedFid];
+			const params = [saltedHashedFid, partitionId];
 
 			sqlStatement += ' LIMIT ?';
 			params.push((limit + 1).toString()); // Fetch one extra to determine if there are more results
@@ -240,7 +251,9 @@ export const Query = {
 			// Use provided { secret, salt, shift }, or fallback to ctx.env values
 			const effectiveSecret = secret || env.SECRET;
 			const effectiveSalt = salt || env.SALT;
+			const effectiveShift = shift || env.SHIFT;
 
+			const partitionId = await generatePartitionId(effectiveSecret, effectiveSalt, effectiveShift);
 			const saltedHashedFid = await hash(fid.toString(), effectiveSalt);
 			const obscuredEncodedText = await hash(encodedText, effectiveSalt);
 
@@ -252,10 +265,11 @@ export const Query = {
                 WHERE salted_hashed_fid = $1
                     AND obscured_hashed_text = $2
 					AND deleted_at IS NULL
+					AND partition_id = $3
                     AND schema_version = '${SCHEMA}'
             `;
 
-			const stmt = env.D1.prepare(sqlStatement).bind([saltedHashedFid, obscuredEncodedText]);
+			const stmt = env.D1.prepare(sqlStatement).bind([saltedHashedFid, obscuredEncodedText, partitionId]);
 			const result = await stmt.first<{
 				shifted_timestamp: string;
 				encrypted_message: string;
@@ -304,7 +318,9 @@ export const Query = {
 			// Use provided { secret, salt, shift }, or fallback to ctx.env values
 			const effectiveSecret = secret || env.SECRET;
 			const effectiveSalt = salt || env.SALT;
+			const effectiveShift = shift || env.SHIFT;
 
+			const partitionId = await generatePartitionId(effectiveSecret, effectiveSalt, effectiveShift);
 			const saltedHashedFid = await hash(castObject.author.fid.toString(), effectiveSalt);
 			const obscuredEncodedText = await hash(keccak256Hash, effectiveSalt);
 
@@ -316,6 +332,7 @@ export const Query = {
                 WHERE salted_hashed_fid = '${saltedHashedFid}'
                     AND obscured_hashed_text = '${obscuredEncodedText}'
 					AND deleted_at IS NULL
+					AND partition_id = '${partitionId}'
                     AND schema_version = '${SCHEMA}'
             `;
 			const stmt = env.D1.prepare(sqlStatement);

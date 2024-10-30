@@ -8,6 +8,7 @@ CREATE TABLE stored_data (
     partition_id,
     schema_version,
     PRIMARY KEY (
+        partition_id,
         schema_version,
         obscured_message_id
     )

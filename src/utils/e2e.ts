@@ -3,6 +3,9 @@ import { encrypt } from '../lib/aes-gcm';
 import { ExternalData, ExternalDataSchema, StoredData } from '../types';
 import { hash } from './../lib/hashUtils';
 
+export const generatePartitionId = async (secret: string, salt: string, shift: number) =>
+	await hash([secret, salt, shift.toString()].join(':'), 'unsalted');
+
 export const prepareExternalDataForStorage = async (props: {
 	externalData: ExternalData;
 	secret: string;
@@ -30,6 +33,7 @@ export const prepareExternalDataForStorage = async (props: {
 	const obscuredMessageHash = await hash(messageHash, salt);
 	const encryptedMessage = await encrypt(JSON.stringify({ messageHash, fid, timestamp, text }), secret);
 	const obscuredHashedText = hashedText ? await hash(hashedText, salt) : '';
+	const partitionId = await generatePartitionId(secret, salt, shift);
 
 	return {
 		saltedHashedFid,
@@ -37,5 +41,6 @@ export const prepareExternalDataForStorage = async (props: {
 		obscuredMessageHash,
 		encryptedMessage,
 		obscuredHashedText,
+		partitionId,
 	};
 };

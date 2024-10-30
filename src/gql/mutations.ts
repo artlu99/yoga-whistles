@@ -43,14 +43,15 @@ export const Mutation = {
 		}
 
 		const sqlStatement = `INSERT INTO stored_data 
-        (obscured_message_id, salted_hashed_fid, shifted_timestamp, encrypted_message, obscured_hashed_text, schema_version) 
-         VALUES ($1, $2, $3, $4, $5, '${SCHEMA}')
-          ON CONFLICT (schema_version, obscured_message_id)
+        (obscured_message_id, salted_hashed_fid, shifted_timestamp, encrypted_message, obscured_hashed_text, partition_id, schema_version) 
+         VALUES ($1, $2, $3, $4, $5, $6, '${SCHEMA}')
+          ON CONFLICT (partition_id, schema_version, obscured_message_id)
            DO UPDATE
             SET salted_hashed_fid = $2,
                 shifted_timestamp = $3,
                 encrypted_message = $4,
-                obscured_hashed_text = $5`;
+                obscured_hashed_text = $5,
+				partition_id = $6`;
 
 		try {
 			const stmt = env.D1.prepare(sqlStatement).bind(
@@ -58,7 +59,8 @@ export const Mutation = {
 				dataToStore.saltedHashedFid,
 				dataToStore.shiftedTimestamp,
 				dataToStore.encryptedMessage,
-				dataToStore.obscuredHashedText
+				dataToStore.obscuredHashedText,
+				dataToStore.partitionId
 			);
 			await stmt.run();
 		} catch (e) {
