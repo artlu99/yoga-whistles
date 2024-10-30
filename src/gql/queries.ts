@@ -32,6 +32,7 @@ export const Query = {
                     encrypted_message
                 FROM stored_data 
                 WHERE shifted_timestamp > 1
+					AND deleted_at IS NULL
 					AND schema_version = '${SCHEMA}'
 				ORDER BY shifted_timestamp ASC
                 LIMIT 20
@@ -76,7 +77,7 @@ export const Query = {
                     encrypted_message,
                     obscured_hashed_text
                 FROM stored_data
-                WHERE schema_version = '${SCHEMA}'
+                WHERE deleted_at IS NULL AND schema_version = '${SCHEMA}'
                 ORDER BY ROWID DESC
                 LIMIT ?
             `;
@@ -124,6 +125,7 @@ export const Query = {
                 SELECT encrypted_message 
                 FROM stored_data 
                 WHERE obscured_message_id = ?
+				AND deleted_at IS NULL
                 AND schema_version = '${SCHEMA}'
             `;
 			const stmt = env.D1.prepare(sqlStatement).bind(obscuredMessageHash);
@@ -176,6 +178,7 @@ export const Query = {
                     encrypted_message
                 FROM stored_data 
                 WHERE salted_hashed_fid = ?
+				AND deleted_at IS NULL
                 AND schema_version = '${SCHEMA}'
                 ORDER BY shifted_timestamp ${order.asc ? 'ASC' : 'DESC'}
             `;
@@ -248,6 +251,7 @@ export const Query = {
                 FROM stored_data 
                 WHERE salted_hashed_fid = $1
                     AND obscured_hashed_text = $2
+					AND deleted_at IS NULL
                     AND schema_version = '${SCHEMA}'
             `;
 
@@ -311,6 +315,7 @@ export const Query = {
                 FROM stored_data 
                 WHERE salted_hashed_fid = '${saltedHashedFid}'
                     AND obscured_hashed_text = '${obscuredEncodedText}'
+					AND deleted_at IS NULL
                     AND schema_version = '${SCHEMA}'
             `;
 			const stmt = env.D1.prepare(sqlStatement);

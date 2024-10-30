@@ -4,6 +4,8 @@ CREATE TABLE stored_data (
     shifted_timestamp,
     encrypted_message,
     obscured_hashed_text,
+    deleted_at,
+    partition_id,
     schema_version,
     PRIMARY KEY (
         schema_version,
