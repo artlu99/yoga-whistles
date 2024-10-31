@@ -1,6 +1,6 @@
 import { LOOKBACK_WINDOW, PRUNE_INTERVAL } from '../constants';
 import { CastObject } from '../lib/neynar-types';
-import { getChannelMembersSwr, listEnabledChannels, markFidForPruning } from '../lib/redis';
+import { getChannelMembersSwr, getChannelSwr, listEnabledChannels, markFidForPruning } from '../lib/redis';
 
 export const checkEligibility = async (props: { castObj: CastObject; viewerFid: number }): Promise<boolean> => {
 	const { castObj, viewerFid } = props;
@@ -15,6 +15,13 @@ export const checkEligibility = async (props: { castObj: CastObject; viewerFid: 
 	}
 
 	if (channelId) {
+		// The KMac Rule - https://warpcast.com/kmacb.eth/0x3aad1d27
+		// check if the channel owner has specified publicCasting: true
+		const channel = await getChannelSwr(channelId);
+		if (channel?.publicCasting) {
+			return true;
+		}
+
 		// check if the channel has been opted in by the channel owner
 		const enabledChannels = await listEnabledChannels();
 		if (!enabledChannels.includes(channelId)) {

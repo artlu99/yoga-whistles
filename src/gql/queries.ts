@@ -1,4 +1,3 @@
-import { schema } from './index';
 import { Validator } from '@cfworker/json-schema';
 import { LOOKBACK_WINDOW, PRUNE_INTERVAL, SCHEMA } from '../constants';
 import { hasClientToken, isValidAuthHeader, verifyToken } from '../helpers';
@@ -121,7 +120,7 @@ export const Query = {
 			throw new Error('Failed to get numSchemas');
 		}
 	},
-	maxSchemaVersion:  async (_: any, _args: any, { env }: CFContext) => {
+	maxSchemaVersion: async (_: any, _args: any, { env }: CFContext) => {
 		try {
 			const sqlStatement = `
 				SELECT schema_version
