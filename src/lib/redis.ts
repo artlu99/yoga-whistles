@@ -41,6 +41,7 @@ export const getChannelMembersSwr = async (channelId: string) => {
 
 	try {
 		const channelMembers = (await getWarpcastChannelMembers(channelId)) ?? [];
+		await redis.del(`members-${channelId}`);
 		await redis.sadd(`members-${channelId}`, channelMembers[0], ...channelMembers.slice(1));
 	} catch (e) {
 		console.error('error while updating channel members:', e);
