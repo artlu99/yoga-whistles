@@ -4,7 +4,7 @@ import { hasClientToken, isValidAuthHeader, verifyToken } from '../helpers';
 import { decrypt } from '../lib/aes-gcm';
 import { hash } from '../lib/hashUtils';
 import { getCastByHash } from '../lib/hub';
-import { listEnabledChannels } from '../lib/redis';
+import { listEnabledChannels, listOptedOutChannels } from '../lib/redis';
 import { FarcasterEpochToUnixEpoch } from '../lib/warpcast';
 import { CFContext, EncryptedPacket, ExternalData, ExternalDataSchema } from '../types';
 import { generatePartitionId } from '../utils/e2e';
@@ -199,6 +199,15 @@ export const Query = {
 		} catch (error) {
 			console.error('Error in getEnabledChannels:', error);
 			throw new Error('Failed to retrieve enabled channels');
+		}
+	},
+	getDisabledChannels: async () => {
+		try {
+			const res = await listOptedOutChannels();
+			return res;
+		} catch (error) {
+			console.error('Error in getDisabledChannels:', error);
+			throw new Error('Failed to retrieve disabled channels');
 		}
 	},
 	getEncryptedData: async (_: any, { limit = 10 }: { limit?: number }, { env }: CFContext) => {

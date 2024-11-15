@@ -27,6 +27,8 @@ export const schema = createSchema({
 
 			getEnabledChannels: [String!]!
 
+			getDisabledChannels: [String!]!
+
 			getDecryptedData(messageId: String!, bearerToken: String, secret: String, salt: String): PlaintextMessageResponse
 
 			getDecryptedMessagesByFid(

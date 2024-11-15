@@ -1,6 +1,6 @@
 import { LOOKBACK_WINDOW, PRUNE_INTERVAL } from '../constants';
 import { CastObject } from '../lib/neynar-types';
-import { getChannelMembersSwr, getChannelSwr, listEnabledChannels, markFidForPruning } from '../lib/redis';
+import { getChannelMembersSwr, getChannelSwr, listEnabledChannels, listOptedOutChannels, markFidForPruning } from '../lib/redis';
 
 export const checkEligibility = async (props: { castObj: CastObject; viewerFid: number }): Promise<boolean> => {
 	const { castObj, viewerFid } = props;
@@ -20,6 +20,13 @@ export const checkEligibility = async (props: { castObj: CastObject; viewerFid: 
 		const channel = await getChannelSwr(channelId);
 		if (channel?.publicCasting) {
 			return true;
+		}
+
+		// check if the channel has been opted out by the channel owner
+		const optedOutChannels = await listOptedOutChannels();
+		if (optedOutChannels.includes(channelId)) {
+			console.error('channel owner has opted out');
+			return false;
 		}
 
 		// check if the channel has been opted in by the channel owner

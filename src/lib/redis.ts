@@ -20,14 +20,21 @@ export const invalidateNonce = async (nonce: string | undefined) => {
 
 export const enableChannel = async (channelId: string, channelUrl: string) => {
 	await redis.hset('channels', { [channelId]: channelUrl });
+	await redis.hdel('opted-out-channels', channelId);
 };
 
 export const disableChannel = async (channelId: string) => {
 	await redis.hdel('channels', channelId);
+	await redis.hset('opted-out-channels', { [channelId]: 'true' });
 };
 
 export const listEnabledChannels = async () => {
 	const res = await redis.hkeys('channels');
+	return res;
+};
+
+export const listOptedOutChannels = async () => {
+	const res = await redis.hkeys('opted-out-channels');
 	return res;
 };
 
