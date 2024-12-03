@@ -1,4 +1,4 @@
-import { SCHEMA } from '../constants';
+import { ALLOW_ANON_FIDS, SCHEMA } from '../constants';
 import { hasClientToken, isValidAuthHeader } from '../helpers';
 import { disableChannel, enableChannel, invalidateNonce, isValidNonce } from '../lib/redis';
 import { CFContext } from '../types';
@@ -17,7 +17,9 @@ const checkNonce = async (nonce: string | undefined): Promise<void> => {
 	if (!nonceValidFlag) {
 		throw new Error('Invalid or expired nonce: ' + nonce);
 	} else if (nonceValidFlag) {
-		await invalidateNonce(nonce);
+		if (!ALLOW_ANON_FIDS) {
+			await invalidateNonce(nonce);
+		}
 	}
 };
 
