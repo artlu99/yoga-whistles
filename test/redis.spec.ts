@@ -4,12 +4,12 @@ import { getChannelMembersSwr, listEnabledChannels } from '../src/lib/redis';
 describe('redis cache', () => {
 	it('known channels', async () => {
 		const knownChannels = await listEnabledChannels();
-		expect(knownChannels.length).toBe(9);
+		expect(knownChannels.length).toBe(12);
 	});
 	it('arthur channel members', async () => {
 		const channelId = 'arthur';
 		const members = await getChannelMembersSwr(channelId);
-		expect(members.length).toBe(39);
+		expect(members.length).toBe(48);
 	});
 
 	it('bcbhshow channel members', async () => {

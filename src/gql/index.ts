@@ -72,6 +72,21 @@ export const schema = createSchema({
 		}
 
 		type Mutation {
+			markMessagesForPruning(input: MessagesToMarkForPruning!): MarkMessagesForPruningResponse!
+		}
+
+		input MessagesToMarkForPruning {
+			secret: String
+			salt: String
+			shift: Int
+		}
+		
+		type MarkMessagesForPruningResponse {
+			success: Boolean!
+			message: String
+		}
+
+		type Mutation {
 			enableChannel(input: EnableChannelInput!): EnableDisableChannelResponse!
 		}
 
@@ -115,6 +130,7 @@ export const schema = createSchema({
 			timestamp: Timestamp!
 			messageHash: String!
 			text: String!
+			deletedAt: String
 		}
 
 		type DecryptedMessagesResponse {

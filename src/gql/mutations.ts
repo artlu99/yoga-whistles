@@ -2,8 +2,8 @@ import { SCHEMA } from '../constants';
 import { hasClientToken, isValidAuthHeader } from '../helpers';
 import { disableChannel, enableChannel, invalidateNonce, isValidNonce } from '../lib/redis';
 import { CFContext } from '../types';
-import { prepareExternalDataForStorage } from '../utils/e2e';
-import { AuthorizedPlaintextMessage, DisableChannelInput, EnableChannelInput } from './types';
+import { calcPruneBoundary, generatePartitionId, prepareExternalDataForStorage } from '../utils/e2e';
+import { AuthorizedPlaintextMessage, DisableChannelInput, EnableChannelInput, MessagesToMarkForPruning } from './types';
 
 const checkToken = async (request: Request<unknown, CfProperties<unknown>>): Promise<void> => {
 	const isTokenValid = await isValidAuthHeader(request?.headers);
@@ -69,6 +69,37 @@ export const Mutation = {
 		}
 
 		return { success: true, message: 'Data updated successfully' };
+	},
+	markMessagesForPruning: async (_: any, { input }: { input: MessagesToMarkForPruning }, { env, request }: CFContext) => {
+		const { secret, salt, shift } = input;
+		const effectiveSecret = secret ?? env.SECRET;
+		const effectiveSalt = salt ?? env.SALT;
+		const effectiveShift = shift ?? env.SHIFT;
+
+		const partitionId = await generatePartitionId(effectiveSecret, effectiveSalt, effectiveShift);
+		const pruneBoundary = calcPruneBoundary(effectiveShift);
+
+		const sqlStatement = `
+            UPDATE stored_data
+            SET deleted_at = CURRENT_TIMESTAMP
+            WHERE partition_id = $1
+				AND deleted_at IS NULL
+                AND shifted_timestamp < $2
+                AND schema_version = '${SCHEMA}'
+        `;
+
+		try {
+			const stmt = env.D1.prepare(sqlStatement).bind(partitionId, pruneBoundary);
+			const cnt = await stmt.run();
+
+			return {
+				success: cnt.meta.changed_db,
+				message: `${cnt.meta.changes} messages successfully marked for pruning`,
+			};
+		} catch (e) {
+			console.error(e);
+			throw new Error('Update failed');
+		}
 	},
 	enableChannel: async (_: any, { input }: { input: EnableChannelInput }, { env, request }: CFContext) => {
 		await hasClientToken(request.headers);

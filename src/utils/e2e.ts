@@ -1,4 +1,5 @@
 import { Validator } from '@cfworker/json-schema';
+import { PRUNE_INTERVAL } from '../constants';
 import { encrypt } from '../lib/aes-gcm';
 import { ExternalData, ExternalDataSchema, StoredData } from '../types';
 import { hash } from './../lib/hashUtils';
@@ -44,3 +45,6 @@ export const prepareExternalDataForStorage = async (props: {
 		partitionId,
 	};
 };
+
+export const calcPruneBoundary = (shift: number) =>
+	(BigInt(Math.floor(Date.now() / 1000)) - BigInt(1609459200) - BigInt(shift) - BigInt(PRUNE_INTERVAL * 24 * 60 * 60)).toString();

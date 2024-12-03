@@ -5,7 +5,7 @@ describe('warpcast api', () => {
 	it('arthur channel members', async () => {
 		const channelId = 'arthur';
 		const members = await getChannelMembers(channelId);
-		expect(members.length).toBe(39);
+		expect(members.length).toBe(48);
 	});
 
 	it('bcbhshow channel members', async () => {

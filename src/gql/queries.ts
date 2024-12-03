@@ -322,10 +322,10 @@ export const Query = {
 			let sqlStatement = `
                 SELECT
                     shifted_timestamp,
-                    encrypted_message
+                    encrypted_message,
+					deleted_at
                 FROM stored_data 
                 WHERE salted_hashed_fid = ?
-				AND deleted_at IS NULL
 				AND partition_id = ?
                 AND schema_version = '${SCHEMA}'
                 ORDER BY shifted_timestamp ${order.asc ? 'ASC' : 'DESC'}
@@ -340,6 +340,7 @@ export const Query = {
 				await stmt.all<{
 					shifted_timestamp: string;
 					encrypted_message: string;
+					deleted_at: string | null;
 				}>()
 			).results;
 
@@ -357,6 +358,7 @@ export const Query = {
 					fid,
 					timestamp: (BigInt(result.shifted_timestamp) + BigInt(effectiveShift)).toString(),
 					text: messageObj.text,
+					deletedAt: result.deleted_at
 				});
 			}
 

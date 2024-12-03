@@ -7,6 +7,12 @@ export interface AuthorizedPlaintextMessage {
 	nonce?: string;
 }
 
+export interface MessagesToMarkForPruning {
+	secret?: string;
+	salt?: string;
+	shift?: number;
+}
+
 export interface EnableChannelInput {
 	channelId: string;
 	parentUrl: string;
