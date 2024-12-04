@@ -1,4 +1,4 @@
-import { LOOKBACK_WINDOW, PRUNE_INTERVAL } from '../constants';
+import { ALLOW_FREE_RANGE_SASSY, LOOKBACK_WINDOW, PRUNE_INTERVAL } from '../constants';
 import { CastObject } from '../lib/neynar-types';
 import { getChannelMembersSwr, getChannelSwr, listEnabledChannels, listOptedOutChannels, markFidForPruning } from '../lib/redis';
 
@@ -30,10 +30,12 @@ export const checkEligibility = async (props: { castObj: CastObject; viewerFid: 
 		}
 
 		// check if the channel has been opted in by the channel owner
-		const enabledChannels = await listEnabledChannels();
-		if (!enabledChannels.includes(channelId)) {
-			console.error('channel is not enabled');
-			return false;
+		if (!ALLOW_FREE_RANGE_SASSY) {
+			const enabledChannels = await listEnabledChannels();
+			if (!enabledChannels.includes(channelId)) {
+				console.error('channel is not enabled');
+				return false;
+			}
 		}
 	} else {
 		// The Shoni Rule - https://warpcast.com/shoni.eth/0xc9eaf251
