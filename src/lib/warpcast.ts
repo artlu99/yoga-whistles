@@ -1,6 +1,7 @@
 import { fetcher } from 'itty-fetcher';
 const WARPCAST_API_BASE_URL = 'https://api.warpcast.com';
 const WARPCAST_API_URL = 'https://api.warpcast.com/fc/channel-members' ?? 'https://channel-members.artlu.workers.dev/';
+const MAX_CHANNEL_MEMBERS = 5000;
 
 export interface ChannelMember {
 	fid: number;
@@ -37,10 +38,20 @@ interface ChannelWarpcastApiResponse {
 	result: { channel: Channel };
 }
 
-export const getChannelMembers = async (channelId: string) => {
-	const res = await fetcher({ base: WARPCAST_API_URL }).get<ChannelMembersWarpcastApiResponse>(`?channelId=${channelId}&limit=1000`);
+export const getChannelMembers = async (channelId: string) => {	
+	const members: ChannelMember[] = [];
+	let cursor: string | undefined = undefined;
+	let totalFetched = 0;
 
-	return res.result.members;
+	do {
+		const res:ChannelMembersWarpcastApiResponse = await fetcher({ base: WARPCAST_API_URL }).get(`?channelId=${channelId}&limit=1000${cursor ? `&cursor=${cursor}` : ''}`);
+		
+		members.push(...res.result.members);
+		totalFetched += res.result.members.length;
+		cursor = res.next?.cursor;
+	} while (cursor && totalFetched < MAX_CHANNEL_MEMBERS);
+
+	return members.slice(0, MAX_CHANNEL_MEMBERS);
 };
 
 export const getChannel = async (channelId: string) => {

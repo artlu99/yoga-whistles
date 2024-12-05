@@ -4,7 +4,7 @@ import { getChannelMembersSwr, listEnabledChannels } from '../src/lib/redis';
 describe('redis cache', () => {
 	it('known channels', async () => {
 		const knownChannels = await listEnabledChannels();
-		expect(knownChannels.length).toBe(12);
+		expect(knownChannels.length).toBe(11);
 	});
 	it('arthur channel members', async () => {
 		const channelId = 'arthur';
@@ -16,5 +16,11 @@ describe('redis cache', () => {
 		const channelId = 'bcbhshow';
 		const members = await getChannelMembersSwr(channelId);
 		expect(members.length).toBe(16);
+	});
+
+	it('no-channel channel members', async () => {
+		const channelId = 'no-channel';
+		const members = await getChannelMembersSwr(channelId);
+		expect(members.length).toBe(1368);
 	});
 });
