@@ -1,6 +1,6 @@
 import { ALLOW_FREE_RANGE_SASSY, LOOKBACK_WINDOW, PRUNE_INTERVAL } from '../constants';
 import { CastObject } from '../lib/neynar-types';
-import { getChannelMembersSwr, getChannelSwr, listEnabledChannels, listOptedOutChannels, markFidForPruning } from '../lib/redis';
+import { getChannelMembersSwr, getChannelSwr, listEnabledChannels, listOptedOutChannels } from '../lib/redis';
 
 export const checkEligibility = async (props: { castObj: CastObject; viewerFid: number }): Promise<boolean> => {
 	const { castObj, viewerFid } = props;
@@ -10,7 +10,6 @@ export const checkEligibility = async (props: { castObj: CastObject; viewerFid: 
 	// cast is older than 60 days
 	if (timestamp < Date.now() - PRUNE_INTERVAL * 24 * 60 * 60 * 1000) {
 		console.error('cast is older than PRUNE_INTERVAL');
-		await markFidForPruning(castObj.author.fid);
 		return false;
 	}
 

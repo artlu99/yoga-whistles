@@ -358,7 +358,7 @@ export const Query = {
 					fid,
 					timestamp: (BigInt(result.shifted_timestamp) + BigInt(effectiveShift)).toString(),
 					text: messageObj.text,
-					deletedAt: result.deleted_at
+					deletedAt: result.deleted_at,
 				});
 			}
 
