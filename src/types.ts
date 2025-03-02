@@ -7,7 +7,8 @@ export interface Env {
 	SHIFT: number;
 	NEYNAR_API_KEY: string;
 	PINATA_JWT: string;
-	D1: D1Database;
+	TURSO_DATABASE_URL: string;
+	TURSO_AUTH_TOKEN: string;
 }
 
 export interface CFContext extends YogaInitialContext {

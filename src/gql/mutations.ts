@@ -1,6 +1,7 @@
 import { ALLOW_ANON_FIDS, SCHEMA } from '../constants';
 import { hasClientToken, isValidAuthHeader } from '../helpers';
 import { disableChannel, enableChannel, invalidateNonce, isValidNonce } from '../lib/redis';
+import { tursoClient } from '../lib/turso';
 import { CFContext } from '../types';
 import { calcPruneBoundary, generatePartitionId, prepareExternalDataForStorage } from '../utils/e2e';
 import { AuthorizedPlaintextMessage, DisableChannelInput, EnableChannelInput, MessagesToMarkForPruning } from './types';
@@ -44,27 +45,29 @@ export const Mutation = {
 			throw new Error('Data not prepared');
 		}
 
-		const sqlStatement = `INSERT INTO stored_data 
-        (obscured_message_id, salted_hashed_fid, shifted_timestamp, encrypted_message, obscured_hashed_text, partition_id, schema_version) 
-         VALUES ($1, $2, $3, $4, $5, $6, '${SCHEMA}')
+		const sqlStatement = `INSERT INTO stored_data
+        (obscured_message_id, salted_hashed_fid, shifted_timestamp, encrypted_message, obscured_hashed_text, partition_id, schema_version)
+         VALUES ((:obscuredMessageHash), (:saltedHashedFid), (:shiftedTimestamp), (:encryptedMessage), (:obscuredHashedText), (:partitionId), '${SCHEMA}')
           ON CONFLICT (partition_id, schema_version, obscured_message_id)
            DO UPDATE
-            SET salted_hashed_fid = $2,
-                shifted_timestamp = $3,
-                encrypted_message = $4,
-                obscured_hashed_text = $5,
-				partition_id = $6`;
+            SET salted_hashed_fid = (:saltedHashedFid),
+                shifted_timestamp = (:shiftedTimestamp),
+                encrypted_message = (:encryptedMessage),
+                obscured_hashed_text = (:obscuredHashedText),
+				partition_id = (:partitionId)`;
 
 		try {
-			const stmt = env.D1.prepare(sqlStatement).bind(
-				dataToStore.obscuredMessageHash,
-				dataToStore.saltedHashedFid,
-				dataToStore.shiftedTimestamp,
-				dataToStore.encryptedMessage,
-				dataToStore.obscuredHashedText,
-				dataToStore.partitionId
-			);
-			await stmt.run();
+			await tursoClient(env).execute({
+				sql: sqlStatement,
+				args: {
+					obscuredMessageHash: dataToStore.obscuredMessageHash,
+					saltedHashedFid: dataToStore.saltedHashedFid,
+					shiftedTimestamp: dataToStore.shiftedTimestamp,
+					encryptedMessage: dataToStore.encryptedMessage,
+					obscuredHashedText: dataToStore.obscuredHashedText,
+					partitionId: dataToStore.partitionId,
+				},
+			});
 		} catch (e) {
 			console.error(e);
 			throw new Error('Update failed');
@@ -84,19 +87,21 @@ export const Mutation = {
 		const sqlStatement = `
             UPDATE stored_data
             SET deleted_at = CURRENT_TIMESTAMP
-            WHERE partition_id = $1
+            WHERE partition_id = (:partitionId)
 				AND deleted_at IS NULL
-                AND shifted_timestamp < $2
+                AND shifted_timestamp < (:pruneBoundary)
                 AND schema_version = '${SCHEMA}'
         `;
 
 		try {
-			const stmt = env.D1.prepare(sqlStatement).bind(partitionId, pruneBoundary);
-			const cnt = await stmt.run();
+			console.log(sqlStatement, partitionId, pruneBoundary);
+			const rs = await tursoClient(env).execute({ sql: sqlStatement, args: { partitionId, pruneBoundary } });
+			console.log(rs);
+			const cnt = rs.rowsAffected;
 
 			return {
-				success: cnt.meta.changed_db,
-				message: `${cnt.meta.changes} messages successfully marked for pruning`,
+				success: cnt,
+				message: `${cnt} messages successfully marked for pruning`,
 			};
 		} catch (e) {
 			console.error(e);

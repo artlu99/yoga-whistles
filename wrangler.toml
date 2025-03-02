@@ -5,8 +5,3 @@ compatibility_flags = ["nodejs_compat"]
 
 [observability]
 enabled = true
-
-[[d1_databases]]
-binding = "D1"
-database_name = "whistles-sql"
-database_id = "ba840bdd-ffd3-46c4-ba34-dec3b7afba59"
