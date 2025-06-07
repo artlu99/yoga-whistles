@@ -1,11 +1,11 @@
 import { ALLOW_FREE_RANGE_SASSY, LOOKBACK_WINDOW, PRUNE_INTERVAL } from '../constants';
-import { CastObject } from '../lib/neynar-types';
+import type { CastObject } from '../lib/shim';
 import { getChannelMembersSwr, getChannelSwr, listEnabledChannels, listOptedOutChannels } from '../lib/redis';
 
 export const checkEligibility = async (props: { castObj: CastObject; viewerFid: number }): Promise<boolean> => {
 	const { castObj, viewerFid } = props;
 	const channelId = castObj.channel?.id;
-	const timestamp = new Date(castObj.timestamp).getTime();
+	const timestamp = new Date(castObj.timestamp * 1000).getTime();
 
 	// cast is older than 60 days
 	if (timestamp < Date.now() - PRUNE_INTERVAL * 24 * 60 * 60 * 1000) {

@@ -3,7 +3,7 @@ import { LOOKBACK_WINDOW, PRUNE_INTERVAL, SCHEMA } from '../constants';
 import { hasClientToken, isValidAuthHeader, verifyToken } from '../helpers';
 import { decrypt } from '../lib/aes-gcm';
 import { hash } from '../lib/hashUtils';
-import { getCastByHash } from '../lib/hub';
+import { getCastByHash } from '../lib/shim';
 import { listEnabledChannels, listOptedOutChannels } from '../lib/redis';
 import { tursoClient } from '../lib/turso';
 import { FarcasterEpochToUnixEpoch } from '../lib/warpcast';
@@ -439,18 +439,18 @@ export const Query = {
 		if (!isFcClient) {
 			throw new Error('Invalid or expired token');
 		}
-		const castObject = await getCastByHash(castFid, castHash, env);
+		const castObject = await getCastByHash(castFid, castHash);
 		if (!castObject) {
 			throw new Error('Cast not found');
 		}
-
+		const timestampIsoString = new Date(castObject.timestamp * 1000).toISOString();
 		// if cast has a Keccak256 hash AND viewerFid has access to the cast
 		// 		decrypt and return the cast
 		// else
 		// 	 	return the cast
 
-		const isCastOwner = castObject.author.fid === viewerFid;
-		const hasKeccak256HashRe = castObject.text.match(/[a-fA-F0-9]{64}/); // Regular expression to find a Keccak256 hash
+		const isCastOwner = castObject.fid === viewerFid;
+		const hasKeccak256HashRe = castObject.text?.match(/[a-fA-F0-9]{64}/); // Regular expression to find a Keccak256 hash
 		const keccak256Hash = hasKeccak256HashRe ? hasKeccak256HashRe[0] : null; // Extract the hash or set to null if not found
 		const isEligible =
 			keccak256Hash &&
@@ -466,7 +466,7 @@ export const Query = {
 			const effectiveShift = shift || env.SHIFT;
 
 			const partitionId = await generatePartitionId(effectiveSecret, effectiveSalt, effectiveShift);
-			const saltedHashedFid = await hash(castObject.author.fid.toString(), effectiveSalt);
+			const saltedHashedFid = await hash(castObject.fid.toString(), effectiveSalt);
 			const obscuredEncodedText = await hash(keccak256Hash, effectiveSalt);
 
 			// get the cast from the database
@@ -494,18 +494,18 @@ export const Query = {
 			return {
 				castHash,
 				isDecrypted: true,
-				fid: castObject.author.fid,
-				timestamp: castObject.timestamp,
+				fid: castObject.fid,
+				timestamp: timestampIsoString,
 				decodedText: messageObj.text,
-				text: messageObj.text ? castObject.text.replace(keccak256Hash, messageObj.text) : castObject.text,
+				text: messageObj.text ? castObject.text?.replace(keccak256Hash, messageObj.text) : castObject.text,
 			};
 		}
 
 		return {
 			castHash,
 			isDecrypted: false,
-			fid: castObject.author.fid,
-			timestamp: castObject.timestamp,
+			fid: castObject.fid,
+			timestamp: timestampIsoString,
 			text: castObject.text,
 		};
 	},
