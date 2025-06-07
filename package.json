@@ -12,17 +12,16 @@
   "dependencies": {
     "@cfworker/json-schema": "^2.0.1",
     "@libsql/client": "^0.14.0",
-    "@upstash/redis": "^1.34.4",
+    "@upstash/redis": "^1.35.0",
     "cf-workers-hash": "^1.0.3",
-    "graphql": "^16.10.0",
-    "graphql-yoga": "^5.12.1",
+    "graphql": "^16.11.0",
+    "graphql-yoga": "^5.13.5",
     "itty-fetcher": "^0.9.4"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.5.41",
-    "@cloudflare/workers-types": "^4.20250224.0",
-    "typescript": "^5.8.2",
+    "typescript": "^5.8.3",
     "vitest": "2.0.5",
-    "wrangler": "^3.111.0"
+    "wrangler": "4.15.1"
   }
 }
