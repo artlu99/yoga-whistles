@@ -6,7 +6,6 @@ export interface Env {
 	SALT: string;
 	SHIFT: number;
 	NEYNAR_API_KEY: string;
-	PINATA_JWT: string;
 	TURSO_DATABASE_URL: string;
 	TURSO_AUTH_TOKEN: string;
 }
