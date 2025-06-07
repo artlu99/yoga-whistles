@@ -434,12 +434,12 @@ export const Query = {
 			throw new Error('Failed to retrieve or decrypt messages');
 		}
 	},
-	getTextByCastHash: async (_: any, { castHash, viewerFid, secret, salt, shift }: GetTextByCastHashArgs, { env, request }: CFContext) => {
+	getTextByCastHash: async (_: any, { castFid, castHash, viewerFid, secret, salt, shift }: GetTextByCastHashArgs, { env, request }: CFContext) => {
 		const isFcClient = await hasClientToken(request.headers);
 		if (!isFcClient) {
 			throw new Error('Invalid or expired token');
 		}
-		const castObject = await getCastByHash(castHash, env);
+		const castObject = await getCastByHash(castFid, castHash, env);
 		if (!castObject) {
 			throw new Error('Cast not found');
 		}

@@ -49,6 +49,7 @@ export interface GetDecryptedMessageByFidArgs {
 }
 
 export interface GetTextByCastHashArgs {
+	castFid: number;
 	castHash: string;
 	viewerFid: number;
 	secret?: string;

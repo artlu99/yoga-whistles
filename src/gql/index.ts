@@ -1,6 +1,6 @@
-import { createSchema } from 'graphql-yoga';
-import { Mutation } from './mutations';
-import { Query } from './queries';
+import { createSchema } from "graphql-yoga";
+import { Mutation } from "./mutations";
+import { Query } from "./queries";
 
 export const schema = createSchema({
 	typeDefs: /* GraphQL */ `
@@ -18,7 +18,7 @@ export const schema = createSchema({
 			numPartitions: Int!
 			numSchemas: Int!
 			maxSchemaVersion: String!
-			
+
 			isPrePermissionless(fid: Int): Boolean
 
 			getTimestampOfEarliestMessage(secret: String, salt: String, shift: Int): Timestamp!
@@ -50,7 +50,14 @@ export const schema = createSchema({
 				shift: Int
 			): PlaintextMessageResponse
 
-			getTextByCastHash(castHash: String!, viewerFid: Int!, secret: String, salt: String, shift: Int): ClientMessageResponse
+			getTextByCastHash(
+				castFid: Int!
+				castHash: String!
+				viewerFid: Int!
+				secret: String
+				salt: String
+				shift: Int
+			): ClientMessageResponse
 		}
 
 		type Mutation {
@@ -80,7 +87,7 @@ export const schema = createSchema({
 			salt: String
 			shift: Int
 		}
-		
+
 		type MarkMessagesForPruningResponse {
 			success: Boolean!
 			message: String
