@@ -1,16 +1,26 @@
-import { Validator } from '@cfworker/json-schema';
-import { LOOKBACK_WINDOW, PRUNE_INTERVAL, SCHEMA } from '../constants';
-import { hasClientToken, isValidAuthHeader, verifyToken } from '../helpers';
-import { decrypt } from '../lib/aes-gcm';
-import { hash } from '../lib/hashUtils';
-import { getCastByHash } from '../lib/shim';
-import { listEnabledChannels, listOptedOutChannels } from '../lib/redis';
-import { tursoClient } from '../lib/turso';
-import { FarcasterEpochToUnixEpoch } from '../lib/warpcast';
-import { CFContext, EncryptedPacket, ExternalData, ExternalDataSchema } from '../types';
-import { generatePartitionId } from '../utils/e2e';
-import { checkEligibility } from '../utils/perms';
-import { GetDecryptedDataArgs, GetDecryptedMessageByFidArgs, GetDecryptedMessagesByFidArgs, GetTextByCastHashArgs } from './types';
+import { Validator } from "@cfworker/json-schema";
+import { LOOKBACK_WINDOW, PRUNE_INTERVAL, SCHEMA } from "../constants";
+import { hasClientToken, isValidAuthHeader, verifyToken } from "../helpers";
+import { decrypt } from "../lib/aes-gcm";
+import { hash } from "../lib/hashUtils";
+import { listEnabledChannels, listOptedOutChannels } from "../lib/redis";
+import { getCastByHash } from "../lib/shim";
+import { tursoClient } from "../lib/turso";
+import { FarcasterEpochToUnixEpoch } from "../lib/warpcast";
+import {
+	type CFContext,
+	type EncryptedPacket,
+	type ExternalData,
+	ExternalDataSchema,
+} from "../types";
+import { generatePartitionId } from "../utils/e2e";
+import { checkEligibility } from "../utils/perms";
+import type {
+	GetDecryptedDataArgs,
+	GetDecryptedMessageByFidArgs,
+	GetDecryptedMessagesByFidArgs,
+	GetTextByCastHashArgs,
+} from "./types";
 
 export const Query = {
 	heartbeat: () => true,
@@ -18,7 +28,7 @@ export const Query = {
 	lookbackWindow: () => LOOKBACK_WINDOW,
 	pruneInterval: () => PRUNE_INTERVAL,
 
-	numMessages: async (_: any, _args: any, { env }: CFContext) => {
+	numMessages: async (_: unknown, _args: unknown, { env }: CFContext) => {
 		try {
 			const sqlStatement = `
 				SELECT COUNT(1) AS cnt
@@ -29,16 +39,20 @@ export const Query = {
 			const result = rs.rows.length > 0 ? rs.rows[0] : null;
 
 			if (!result) {
-				throw new Error('Data not found');
+				throw new Error("Data not found");
 			}
 
 			return result.cnt;
 		} catch (error) {
-			console.error('Error in numMessages:', error);
-			throw new Error('Failed to get numMessages');
+			console.error("Error in numMessages:", error);
+			throw new Error("Failed to get numMessages");
 		}
 	},
-	numMessagesMarkedForPruning: async (_: any, _args: any, { env }: CFContext) => {
+	numMessagesMarkedForPruning: async (
+		_: unknown,
+		_args: unknown,
+		{ env }: CFContext,
+	) => {
 		try {
 			const sqlStatement = `
 				SELECT COUNT(1) AS cnt
@@ -49,16 +63,16 @@ export const Query = {
 			const result = rs.rows.length > 0 ? rs.rows[0] : null;
 
 			if (!result) {
-				throw new Error('Data not found');
+				throw new Error("Data not found");
 			}
 
 			return result.cnt;
 		} catch (error) {
-			console.error('Error in numMessagesMarkedForPruning:', error);
-			throw new Error('Failed to get numMessagesMarkedForPruning');
+			console.error("Error in numMessagesMarkedForPruning:", error);
+			throw new Error("Failed to get numMessagesMarkedForPruning");
 		}
 	},
-	numFids: async (_: any, _args: any, { env }: CFContext) => {
+	numFids: async (_: unknown, _args: unknown, { env }: CFContext) => {
 		try {
 			const sqlStatement = `
 				SELECT salted_hashed_fid, COUNT(1) AS cnt
@@ -73,16 +87,16 @@ export const Query = {
 			}));
 
 			if (!results) {
-				throw new Error('Data not found');
+				throw new Error("Data not found");
 			}
 
 			return results.length;
 		} catch (error) {
-			console.error('Error in numFids:', error);
-			throw new Error('Failed to get numFids');
+			console.error("Error in numFids:", error);
+			throw new Error("Failed to get numFids");
 		}
 	},
-	numPartitions: async (_: any, _args: any, { env }: CFContext) => {
+	numPartitions: async (_: unknown, _args: unknown, { env }: CFContext) => {
 		try {
 			const sqlStatement = `
 				SELECT partition_id, COUNT(1) AS cnt
@@ -97,16 +111,16 @@ export const Query = {
 			}));
 
 			if (!results) {
-				throw new Error('Data not found');
+				throw new Error("Data not found");
 			}
 
 			return results.length;
 		} catch (error) {
-			console.error('Error in numPartitions:', error);
-			throw new Error('Failed to get numPartitions');
+			console.error("Error in numPartitions:", error);
+			throw new Error("Failed to get numPartitions");
 		}
 	},
-	numSchemas: async (_: any, _args: any, { env }: CFContext) => {
+	numSchemas: async (_: unknown, _args: unknown, { env }: CFContext) => {
 		try {
 			const sqlStatement = `
 				SELECT schema_version, COUNT(1) AS cnt
@@ -121,16 +135,16 @@ export const Query = {
 			}));
 
 			if (!results) {
-				throw new Error('Data not found');
+				throw new Error("Data not found");
 			}
 
 			return results.length;
 		} catch (error) {
-			console.error('Error in numSchemas:', error);
-			throw new Error('Failed to get numSchemas');
+			console.error("Error in numSchemas:", error);
+			throw new Error("Failed to get numSchemas");
 		}
 	},
-	maxSchemaVersion: async (_: any, _args: any, { env }: CFContext) => {
+	maxSchemaVersion: async (_: unknown, _args: unknown, { env }: CFContext) => {
 		try {
 			const sqlStatement = `
 				SELECT schema_version
@@ -143,23 +157,23 @@ export const Query = {
 			const result = rs.rows.length > 0 ? rs.rows[0] : null;
 
 			if (!result) {
-				throw new Error('Data not found');
+				throw new Error("Data not found");
 			}
 
 			return result.schema_version;
 		} catch (error) {
-			console.error('Error in maxSchemaVersion:', error);
-			throw new Error('Failed to get maxSchemaVersion');
+			console.error("Error in maxSchemaVersion:", error);
+			throw new Error("Failed to get maxSchemaVersion");
 		}
 	},
 
-	isPrePermissionless: (_: any, { fid }: { fid: number }) => {
+	isPrePermissionless: (_: unknown, { fid }: { fid: number }) => {
 		return fid === undefined ? false : fid < 20939;
 	},
 	getTimestampOfEarliestMessage: async (
-		_: any,
+		_: unknown,
 		{ secret, salt, shift }: { secret: string; salt: string; shift: number },
-		{ env }: CFContext
+		{ env }: CFContext,
 	) => {
 		try {
 			// Use provided { secret, salt, shift }, or fallback to ctx.env values
@@ -167,7 +181,11 @@ export const Query = {
 			const effectiveSalt = salt || env.SALT;
 			const effectiveShift = shift || env.SHIFT;
 
-			const partitionId = await generatePartitionId(effectiveSecret, effectiveSalt, effectiveShift);
+			const partitionId = await generatePartitionId(
+				effectiveSecret,
+				effectiveSalt,
+				effectiveShift,
+			);
 
 			// get the cast from the database
 			const sqlStatement = `
@@ -192,14 +210,16 @@ export const Query = {
 			}
 
 			// decrypt and return the cast
-			const encryptedMessage = JSON.parse(result.encrypted_message as string) as EncryptedPacket;
+			const encryptedMessage = JSON.parse(
+				result.encrypted_message as string,
+			) as EncryptedPacket;
 			const decryptedMessage = await decrypt(encryptedMessage, effectiveSecret);
 			const messageObj = JSON.parse(decryptedMessage) as ExternalData;
 
 			return FarcasterEpochToUnixEpoch(messageObj.timestamp);
 		} catch (error) {
-			console.error('Error in getEarliestMessage:', error);
-			throw new Error('Failed to retrieve earliest message');
+			console.error("Error in getEarliestMessage:", error);
+			throw new Error("Failed to retrieve earliest message");
 		}
 	},
 	getEnabledChannels: async () => {
@@ -207,8 +227,8 @@ export const Query = {
 			const res = await listEnabledChannels();
 			return res;
 		} catch (error) {
-			console.error('Error in getEnabledChannels:', error);
-			throw new Error('Failed to retrieve enabled channels');
+			console.error("Error in getEnabledChannels:", error);
+			throw new Error("Failed to retrieve enabled channels");
 		}
 	},
 	getDisabledChannels: async () => {
@@ -216,11 +236,15 @@ export const Query = {
 			const res = await listOptedOutChannels();
 			return res;
 		} catch (error) {
-			console.error('Error in getDisabledChannels:', error);
-			throw new Error('Failed to retrieve disabled channels');
+			console.error("Error in getDisabledChannels:", error);
+			throw new Error("Failed to retrieve disabled channels");
 		}
 	},
-	getEncryptedData: async (_: any, { limit = 10 }: { limit?: number }, { env }: CFContext) => {
+	getEncryptedData: async (
+		_: unknown,
+		{ limit = 10 }: { limit?: number },
+		{ env }: CFContext,
+	) => {
 		try {
 			const sqlStatement = `
                 SELECT
@@ -236,7 +260,10 @@ export const Query = {
                 LIMIT ?
             `;
 
-			const rs = await tursoClient(env).execute({ sql: sqlStatement, args: [limit] });
+			const rs = await tursoClient(env).execute({
+				sql: sqlStatement,
+				args: [limit],
+			});
 			const results = rs.rows.map((row) => ({
 				obscured_message_id: row.obscured_message_id,
 				salted_hashed_fid: row.salted_hashed_fid,
@@ -257,15 +284,19 @@ export const Query = {
 			});
 			return { rows };
 		} catch (error) {
-			console.error('Error in getEncryptedData:', error);
-			throw new Error('Failed to retrieve data');
+			console.error("Error in getEncryptedData:", error);
+			throw new Error("Failed to retrieve data");
 		}
 	},
-	getDecryptedData: async (_: any, { messageId, bearerToken, secret, salt }: GetDecryptedDataArgs, { env, request }: CFContext) => {
+	getDecryptedData: async (
+		_: unknown,
+		{ messageId, bearerToken, secret, salt }: GetDecryptedDataArgs,
+		{ env, request }: CFContext,
+	) => {
 		const verified = await verifyToken(bearerToken);
 		const isTokenValid = await isValidAuthHeader(request.headers);
 		if (!verified && !isTokenValid) {
-			throw new Error('Invalid or expired token');
+			throw new Error("Invalid or expired token");
 		}
 
 		try {
@@ -284,38 +315,52 @@ export const Query = {
 				AND deleted_at IS NULL
                 AND schema_version = '${SCHEMA}'
             `;
-			const rs = await tursoClient(env).execute({ sql: sqlStatement, args: [obscuredMessageHash] });
+			const rs = await tursoClient(env).execute({
+				sql: sqlStatement,
+				args: [obscuredMessageHash],
+			});
 			const result = rs.rows.length > 0 ? rs.rows[0] : null;
 
 			if (!result) {
-				throw new Error('Data not found');
+				throw new Error("Data not found");
 			}
 
 			// Decrypt the data
-			const message = await decrypt(JSON.parse(result.encrypted_message as string) as EncryptedPacket, effectiveSecret);
+			const message = await decrypt(
+				JSON.parse(result.encrypted_message as string) as EncryptedPacket,
+				effectiveSecret,
+			);
 			const messageObj = JSON.parse(message) as ExternalData;
 			const validator = new Validator(ExternalDataSchema);
 			const res = validator.validate(messageObj);
 			if (!res.valid) {
-				console.error('Invalid message:', res.errors);
+				console.error("Invalid message:", res.errors);
 			}
 
 			// Return the decrypted data
 			return messageObj;
 		} catch (error) {
-			console.error('Error in getDecryptedData:', error);
-			throw new Error('Failed to retrieve or decrypt data');
+			console.error("Error in getDecryptedData:", error);
+			throw new Error("Failed to retrieve or decrypt data");
 		}
 	},
 	getDecryptedMessagesByFid: async (
-		_: any,
-		{ fid, bearerToken, limit = 10, order = { asc: true }, secret, salt, shift }: GetDecryptedMessagesByFidArgs,
-		{ env, request }: CFContext
+		_: unknown,
+		{
+			fid,
+			bearerToken,
+			limit = 10,
+			order = { asc: true },
+			secret,
+			salt,
+			shift,
+		}: GetDecryptedMessagesByFidArgs,
+		{ env, request }: CFContext,
 	) => {
 		const verified = await verifyToken(bearerToken);
 		const isTokenValid = await isValidAuthHeader(request.headers);
 		if (!verified && !isTokenValid) {
-			throw new Error('Invalid or expired token');
+			throw new Error("Invalid or expired token");
 		}
 
 		try {
@@ -324,7 +369,11 @@ export const Query = {
 			const effectiveSalt = salt || env.SALT;
 			const effectiveShift = shift || env.SHIFT;
 
-			const partitionId = await generatePartitionId(effectiveSecret, effectiveSalt, effectiveShift);
+			const partitionId = await generatePartitionId(
+				effectiveSecret,
+				effectiveSalt,
+				effectiveShift,
+			);
 			const saltedHashedFid = await hash(fid.toString(), effectiveSalt);
 
 			let sqlStatement = `
@@ -336,14 +385,17 @@ export const Query = {
                 WHERE salted_hashed_fid = ?
 				AND partition_id = ?
                 AND schema_version = '${SCHEMA}'
-                ORDER BY shifted_timestamp ${order.asc ? 'ASC' : 'DESC'}
+                ORDER BY shifted_timestamp ${order.asc ? "ASC" : "DESC"}
             `;
 			const params = [saltedHashedFid, partitionId];
 
-			sqlStatement += ' LIMIT ?';
+			sqlStatement += " LIMIT ?";
 			params.push((limit + 1).toString()); // Fetch one extra to determine if there are more results
 
-			const rs = await tursoClient(env).execute({ sql: sqlStatement, args: params });
+			const rs = await tursoClient(env).execute({
+				sql: sqlStatement,
+				args: params,
+			});
 			const results = rs.rows.map((row) => ({
 				shifted_timestamp: row.shifted_timestamp,
 				encrypted_message: row.encrypted_message,
@@ -355,14 +407,18 @@ export const Query = {
 
 			for (let i = 0; i < Math.min(results.length, limit); i++) {
 				const result = results[i];
-				const encryptedMessage = JSON.parse(result.encrypted_message as string) as EncryptedPacket;
+				const encryptedMessage = JSON.parse(
+					result.encrypted_message as string,
+				) as EncryptedPacket;
 				const messageStr = await decrypt(encryptedMessage, effectiveSecret);
 				const messageObj = JSON.parse(messageStr);
 
 				messages.push({
 					messageHash: messageObj.messageHash,
 					fid,
-					timestamp: (BigInt(result.shifted_timestamp as string) + BigInt(effectiveShift)).toString(),
+					timestamp: (
+						BigInt(result.shifted_timestamp as string) + BigInt(effectiveShift)
+					).toString(),
 					text: messageObj.text,
 					deletedAt: result.deleted_at,
 				});
@@ -377,19 +433,26 @@ export const Query = {
 				nextCursor,
 			};
 		} catch (error) {
-			console.error('Error in getDecryptedMessagesByFid:', error);
-			throw new Error('Failed to retrieve or decrypt messages');
+			console.error("Error in getDecryptedMessagesByFid:", error);
+			throw new Error("Failed to retrieve or decrypt messages");
 		}
 	},
 	getDecryptedMessageByFid: async (
-		_: any,
-		{ fid, encodedText, bearerToken, secret, salt, shift }: GetDecryptedMessageByFidArgs,
-		{ env, request }: CFContext
+		_: unknown,
+		{
+			fid,
+			encodedText,
+			bearerToken,
+			secret,
+			salt,
+			shift,
+		}: GetDecryptedMessageByFidArgs,
+		{ env, request }: CFContext,
 	) => {
 		const verified = await verifyToken(bearerToken);
 		const isTokenValid = await isValidAuthHeader(request.headers);
 		if (!verified && !isTokenValid) {
-			throw new Error('Invalid or expired token');
+			throw new Error("Invalid or expired token");
 		}
 
 		try {
@@ -398,7 +461,11 @@ export const Query = {
 			const effectiveSalt = salt || env.SALT;
 			const effectiveShift = shift || env.SHIFT;
 
-			const partitionId = await generatePartitionId(effectiveSecret, effectiveSalt, effectiveShift);
+			const partitionId = await generatePartitionId(
+				effectiveSecret,
+				effectiveSalt,
+				effectiveShift,
+			);
 			const saltedHashedFid = await hash(fid.toString(), effectiveSalt);
 			const obscuredEncodedText = await hash(encodedText, effectiveSalt);
 
@@ -424,26 +491,41 @@ export const Query = {
 				return undefined;
 			}
 
-			const encryptedMessage = JSON.parse(result.encrypted_message as string) as EncryptedPacket;
+			const encryptedMessage = JSON.parse(
+				result.encrypted_message as string,
+			) as EncryptedPacket;
 			const messageStr = await decrypt(encryptedMessage, effectiveSecret);
 			const messageObj = JSON.parse(messageStr) as ExternalData;
 
 			return messageObj;
 		} catch (error) {
-			console.error('Error in getDecryptedMessageByFid:', error);
-			throw new Error('Failed to retrieve or decrypt messages');
+			console.error("Error in getDecryptedMessageByFid:", error);
+			throw new Error("Failed to retrieve or decrypt messages");
 		}
 	},
-	getTextByCastHash: async (_: any, { castFid, castHash, viewerFid, secret, salt, shift }: GetTextByCastHashArgs, { env, request }: CFContext) => {
+	getTextByCastHash: async (
+		_: unknown,
+		{
+			castFid,
+			castHash,
+			viewerFid,
+			secret,
+			salt,
+			shift,
+		}: GetTextByCastHashArgs,
+		{ env, request }: CFContext,
+	) => {
 		const isFcClient = await hasClientToken(request.headers);
 		if (!isFcClient) {
-			throw new Error('Invalid or expired token');
+			throw new Error("Invalid or expired token");
 		}
 		const castObject = await getCastByHash(castFid, castHash);
 		if (!castObject) {
-			throw new Error('Cast not found');
+			throw new Error("Cast not found");
 		}
-		const timestampIsoString = new Date(castObject.timestamp * 1000).toISOString();
+		const timestampIsoString = new Date(
+			castObject.timestamp * 1000,
+		).toISOString();
 		// if cast has a Keccak256 hash AND viewerFid has access to the cast
 		// 		decrypt and return the cast
 		// else
@@ -465,8 +547,15 @@ export const Query = {
 			const effectiveSalt = salt || env.SALT;
 			const effectiveShift = shift || env.SHIFT;
 
-			const partitionId = await generatePartitionId(effectiveSecret, effectiveSalt, effectiveShift);
-			const saltedHashedFid = await hash(castObject.fid.toString(), effectiveSalt);
+			const partitionId = await generatePartitionId(
+				effectiveSecret,
+				effectiveSalt,
+				effectiveShift,
+			);
+			const saltedHashedFid = await hash(
+				castObject.fid.toString(),
+				effectiveSalt,
+			);
 			const obscuredEncodedText = await hash(keccak256Hash, effectiveSalt);
 
 			// get the cast from the database
@@ -488,7 +577,9 @@ export const Query = {
 			}
 
 			// decrypt and return the cast
-			const encryptedMessage = JSON.parse(result.encrypted_message as string) as EncryptedPacket;
+			const encryptedMessage = JSON.parse(
+				result.encrypted_message as string,
+			) as EncryptedPacket;
 			const decryptedMessage = await decrypt(encryptedMessage, effectiveSecret);
 			const messageObj = JSON.parse(decryptedMessage) as ExternalData;
 			return {
@@ -497,7 +588,9 @@ export const Query = {
 				fid: castObject.fid,
 				timestamp: timestampIsoString,
 				decodedText: messageObj.text,
-				text: messageObj.text ? castObject.text?.replace(keccak256Hash, messageObj.text) : castObject.text,
+				text: messageObj.text
+					? castObject.text?.replace(keccak256Hash, messageObj.text)
+					: castObject.text,
 			};
 		}
 

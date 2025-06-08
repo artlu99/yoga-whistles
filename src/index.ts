@@ -1,11 +1,11 @@
-import { createYoga } from 'graphql-yoga';
-import { schema } from './gql';
-import { CFContext, Env } from './types';
+import { createYoga } from "graphql-yoga";
+import { schema } from "./gql";
+import type { CFContext, Env } from "./types";
 
 const cors = {
 	credentials: true,
-	methods: ['POST'],
-	origin: '*',
+	methods: ["POST"],
+	origin: "*",
 	// Headers: ['Content-Type', 'X-Whistles-Custom-Header'],
 };
 
@@ -16,7 +16,11 @@ const yoga = createYoga<CFContext>({
 });
 
 export default {
-	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+	async fetch(
+		request: Request,
+		env: Env,
+		ctx: ExecutionContext,
+	): Promise<Response> {
 		return yoga.fetch(request, { env });
 	},
 } satisfies ExportedHandler<Env>;

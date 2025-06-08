@@ -1,23 +1,40 @@
-import { ALLOW_ANON_FIDS, SCHEMA } from '../constants';
-import { hasClientToken, isValidAuthHeader } from '../helpers';
-import { disableChannel, enableChannel, invalidateNonce, isValidNonce } from '../lib/redis';
-import { tursoClient } from '../lib/turso';
-import { CFContext } from '../types';
-import { calcPruneBoundary, generatePartitionId, prepareExternalDataForStorage } from '../utils/e2e';
-import { AuthorizedPlaintextMessage, DisableChannelInput, EnableChannelInput, MessagesToMarkForPruning } from './types';
+import { ALLOW_ANON_FIDS, SCHEMA } from "../constants";
+import { hasClientToken, isValidAuthHeader } from "../helpers";
+import {
+	disableChannel,
+	enableChannel,
+	invalidateNonce,
+	isValidNonce,
+} from "../lib/redis";
+import { tursoClient } from "../lib/turso";
+import type { CFContext } from "../types";
+import {
+	calcPruneBoundary,
+	generatePartitionId,
+	prepareExternalDataForStorage,
+} from "../utils/e2e";
+import type {
+	AuthorizedPlaintextMessage,
+	DisableChannelInput,
+	EnableChannelInput,
+	MessagesToMarkForPruning,
+} from "./types";
 
-const checkToken = async (request: Request<unknown, CfProperties<unknown>>): Promise<void> => {
+const checkToken = async (
+	request: Request<unknown, CfProperties<unknown>>,
+): Promise<void> => {
 	const isTokenValid = await isValidAuthHeader(request?.headers);
 	if (!isTokenValid) {
-		throw new Error('Invalid or expired token');
+		throw new Error("Invalid or expired token");
 	}
 };
 
 const checkNonce = async (nonce: string | undefined): Promise<void> => {
 	const nonceValidFlag = await isValidNonce(nonce);
 	if (!nonceValidFlag) {
-		throw new Error('Invalid or expired nonce: ' + nonce);
-	} else if (nonceValidFlag) {
+		throw new Error(`Invalid or expired nonce: ${nonce}`);
+	}
+	if (nonceValidFlag) {
 		if (!ALLOW_ANON_FIDS) {
 			await invalidateNonce(nonce);
 		}
@@ -25,16 +42,29 @@ const checkNonce = async (nonce: string | undefined): Promise<void> => {
 };
 
 export const Mutation = {
-	updateData: async (_: any, { input }: { input: AuthorizedPlaintextMessage }, { env, request }: CFContext) => {
+	updateData: async (
+		_: unknown,
+		{ input }: { input: AuthorizedPlaintextMessage },
+		{ env, request }: CFContext,
+	) => {
 		await checkToken(request);
 		await checkNonce(input.nonce);
 
-		const { fid, timestamp, messageHash, text, hashedText, secret, salt, shift } = input;
+		const {
+			fid,
+			timestamp,
+			messageHash,
+			text,
+			hashedText,
+			secret,
+			salt,
+			shift,
+		} = input;
 		const effectiveSecret = secret ?? env.SECRET;
 		const effectiveSalt = salt ?? env.SALT;
 		const effectiveShift = shift ?? env.SHIFT;
 		if (!fid || !timestamp || !messageHash || !text || !hashedText) {
-			throw new Error('Missing required fields');
+			throw new Error("Missing required fields");
 		}
 
 		const dataToStore = await prepareExternalDataForStorage({
@@ -45,7 +75,7 @@ export const Mutation = {
 		});
 
 		if (!dataToStore) {
-			throw new Error('Data not prepared');
+			throw new Error("Data not prepared");
 		}
 
 		const sqlStatement = `INSERT INTO stored_data
@@ -73,18 +103,26 @@ export const Mutation = {
 			});
 		} catch (e) {
 			console.error(e);
-			throw new Error('Update failed');
+			throw new Error("Update failed");
 		}
 
-		return { success: true, message: 'Data updated successfully' };
+		return { success: true, message: "Data updated successfully" };
 	},
-	markMessagesForPruning: async (_: any, { input }: { input: MessagesToMarkForPruning }, { env, request }: CFContext) => {
+	markMessagesForPruning: async (
+		_: unknown,
+		{ input }: { input: MessagesToMarkForPruning },
+		{ env, request }: CFContext,
+	) => {
 		const { secret, salt, shift } = input;
 		const effectiveSecret = secret ?? env.SECRET;
 		const effectiveSalt = salt ?? env.SALT;
 		const effectiveShift = shift ?? env.SHIFT;
 
-		const partitionId = await generatePartitionId(effectiveSecret, effectiveSalt, effectiveShift);
+		const partitionId = await generatePartitionId(
+			effectiveSecret,
+			effectiveSalt,
+			effectiveShift,
+		);
 		const pruneBoundary = calcPruneBoundary(effectiveShift);
 
 		const sqlStatement = `
@@ -98,7 +136,10 @@ export const Mutation = {
 
 		try {
 			console.log(sqlStatement, partitionId, pruneBoundary);
-			const rs = await tursoClient(env).execute({ sql: sqlStatement, args: { partitionId, pruneBoundary } });
+			const rs = await tursoClient(env).execute({
+				sql: sqlStatement,
+				args: { partitionId, pruneBoundary },
+			});
 			console.log(rs);
 			const cnt = rs.rowsAffected;
 
@@ -108,30 +149,38 @@ export const Mutation = {
 			};
 		} catch (e) {
 			console.error(e);
-			throw new Error('Update failed');
+			throw new Error("Update failed");
 		}
 	},
-	enableChannel: async (_: any, { input }: { input: EnableChannelInput }, { env, request }: CFContext) => {
+	enableChannel: async (
+		_: unknown,
+		{ input }: { input: EnableChannelInput },
+		{ env, request }: CFContext,
+	) => {
 		await hasClientToken(request.headers);
 
 		const { channelId, parentUrl } = input;
 		if (!channelId || !parentUrl) {
-			throw new Error('Missing required fields');
+			throw new Error("Missing required fields");
 		}
 
 		await enableChannel(channelId, parentUrl);
 
-		return { success: true, message: 'Channel enabled successfully' };
+		return { success: true, message: "Channel enabled successfully" };
 	},
-	disableChannel: async (_: any, { input }: { input: DisableChannelInput }, { env, request }: CFContext) => {
+	disableChannel: async (
+		_: unknown,
+		{ input }: { input: DisableChannelInput },
+		{ env, request }: CFContext,
+	) => {
 		await hasClientToken(request.headers);
 
 		const { channelId } = input;
 		if (!channelId) {
-			throw new Error('Missing required fields');
+			throw new Error("Missing required fields");
 		}
 
 		await disableChannel(channelId);
-		return { success: true, message: 'Channel disabled successfully' };
+		return { success: true, message: "Channel disabled successfully" };
 	},
 };

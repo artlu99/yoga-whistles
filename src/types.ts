@@ -1,5 +1,5 @@
-import type { Schema } from '@cfworker/json-schema';
-import type { YogaInitialContext } from 'graphql-yoga';
+import type { Schema } from "@cfworker/json-schema";
+import type { YogaInitialContext } from "graphql-yoga";
 
 export interface Env {
 	SECRET: string;
@@ -15,13 +15,13 @@ export interface CFContext extends YogaInitialContext {
 }
 
 export const PacketSchema: Schema = {
-	type: 'object',
-	optional: ['e', 'i', 'p', 'z'],
+	type: "object",
+	optional: ["e", "i", "p", "z"],
 	properties: {
-		e: { type: 'string' },
-		i: { type: 'string' },
-		p: { type: 'string' },
-		z: { type: 'string' },
+		e: { type: "string" },
+		i: { type: "string" },
+		p: { type: "string" },
+		z: { type: "string" },
 	},
 };
 export interface Packet {
@@ -39,15 +39,15 @@ export interface EncryptedPacket {
 }
 
 export const ExternalDataSchema: Schema = {
-	type: 'object',
-	required: ['fid', 'timestamp', 'messageHash'],
-	optional: ['text', 'hashedText'],
+	type: "object",
+	required: ["fid", "timestamp", "messageHash"],
+	optional: ["text", "hashedText"],
 	properties: {
-		fid: { type: 'number' },
-		timestamp: { type: 'string' },
-		messageHash: { type: 'string' },
-		text: { type: 'string' },
-		hashedText: { type: 'string' },
+		fid: { type: "number" },
+		timestamp: { type: "string" },
+		messageHash: { type: "string" },
+		text: { type: "string" },
+		hashedText: { type: "string" },
 	},
 };
 export interface ExternalData {
@@ -59,15 +59,22 @@ export interface ExternalData {
 }
 
 export const StoredDataSchema: Schema = {
-	type: 'object',
-	required: ['obscuredMessageHash', 'saltedHashedFid', 'shiftedTimestamp', 'encryptedMessageHash', 'encryptedText', 'obscuredHashedText'],
+	type: "object",
+	required: [
+		"obscuredMessageHash",
+		"saltedHashedFid",
+		"shiftedTimestamp",
+		"encryptedMessageHash",
+		"encryptedText",
+		"obscuredHashedText",
+	],
 	properties: {
-		obscuredMessageHash: { type: 'string' },
-		saltedHashedFid: { type: 'string' },
-		shiftedTimestamp: { type: 'number' },
-		encryptedMessage: { type: 'string' },
-		obscuredHashedText: { type: 'string' },
-		partitionId: { type: 'string' },
+		obscuredMessageHash: { type: "string" },
+		saltedHashedFid: { type: "string" },
+		shiftedTimestamp: { type: "number" },
+		encryptedMessage: { type: "string" },
+		obscuredHashedText: { type: "string" },
+		partitionId: { type: "string" },
 	},
 };
 export interface StoredData {

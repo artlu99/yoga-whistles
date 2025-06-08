@@ -1,5 +1,5 @@
-import { createClient } from '@libsql/client/web';
-import { Env } from '../types';
+import { createClient } from "@libsql/client/web";
+import type { Env } from "../types";
 
 export const tursoClient = (env: Env) =>
 	createClient({

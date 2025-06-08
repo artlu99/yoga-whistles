@@ -1,11 +1,9 @@
 {
-  "extends": "../tsconfig.json",
-  "compilerOptions": {
-    "moduleResolution": "bundler",
-    "types": [
-      "@cloudflare/vitest-pool-workers"
-    ]
-  },
-  "include": ["./**/*.ts", "../src/env.d.ts"],
-  "exclude": []
+	"extends": "../tsconfig.json",
+	"compilerOptions": {
+		"moduleResolution": "bundler",
+		"types": ["@cloudflare/vitest-pool-workers"]
+	},
+	"include": ["./**/*.ts", "../src/env.d.ts"],
+	"exclude": []
 }
