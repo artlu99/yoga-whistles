@@ -29,16 +29,19 @@ export const Mutation = {
 		await checkToken(request);
 		await checkNonce(input.nonce);
 
-		const { fid, timestamp, messageHash, text, hashedText } = input;
+		const { fid, timestamp, messageHash, text, hashedText, secret, salt, shift } = input;
+		const effectiveSecret = secret ?? env.SECRET;
+		const effectiveSalt = salt ?? env.SALT;
+		const effectiveShift = shift ?? env.SHIFT;
 		if (!fid || !timestamp || !messageHash || !text || !hashedText) {
 			throw new Error('Missing required fields');
 		}
 
 		const dataToStore = await prepareExternalDataForStorage({
 			externalData: { fid, timestamp, messageHash, text, hashedText },
-			secret: env.SECRET,
-			shift: env.SHIFT,
-			salt: env.SALT,
+			secret: effectiveSecret,
+			shift: effectiveShift,
+			salt: effectiveSalt,
 		});
 
 		if (!dataToStore) {

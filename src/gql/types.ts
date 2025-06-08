@@ -5,6 +5,9 @@ export interface AuthorizedPlaintextMessage {
 	text: string;
 	hashedText: string;
 	nonce?: string;
+	secret?: string;
+	salt?: string;
+	shift?: number;
 }
 
 export interface MessagesToMarkForPruning {
