@@ -2,7 +2,7 @@ import { ASYNC_VALID_BEARER_TOKENS, ASYNC_VALID_TOKENS } from "./secrets";
 
 export const verifyToken = (token: string | undefined): Promise<boolean> => {
 	return new Promise((resolve, reject) => {
-		return resolve(token && ASYNC_VALID_TOKENS.includes(token) ? true : false);
+		return resolve(!!token && !!ASYNC_VALID_TOKENS.includes(token));
 	});
 };
 

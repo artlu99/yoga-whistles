@@ -39,7 +39,7 @@ describe("encrypt/decrypt", () => {
 		const encryptedPacket = JSON.parse(encryptedPacketAsString);
 
 		await expect(decrypt(encryptedPacket, secret2)).rejects.toThrow(
-			"Decryption failed",
+			"The operation failed for an operation-specific reason",
 		);
 	});
 });
