@@ -44,7 +44,7 @@ describe("encrypt/decrypt", () => {
 	});
 });
 
-describe("updateData mutation logic", () => {
+describe("writeData mutation logic", () => {
 	it("happy path", async () => {
 		const dataToStore = await prepareExternalDataForStorage({
 			externalData: {

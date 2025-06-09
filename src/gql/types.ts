@@ -4,7 +4,6 @@ export interface AuthorizedPlaintextMessage {
 	messageHash: string;
 	text: string;
 	hashedText: string;
-	nonce?: string;
 	secret?: string;
 	salt?: string;
 	shift?: number;

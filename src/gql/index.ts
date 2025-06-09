@@ -61,7 +61,7 @@ export const schema = createSchema({
 		}
 
 		type Mutation {
-			updateData(input: AuthorizedPlaintextMessage!): UpdateDataResponse!
+			writeData(input: AuthorizedPlaintextMessage!): WriteDataResponse!
 		}
 
 		input AuthorizedPlaintextMessage {
@@ -70,10 +70,9 @@ export const schema = createSchema({
 			messageHash: String!
 			text: String!
 			hashedText: String!
-			nonce: String
 		}
 
-		type UpdateDataResponse {
+		type WriteDataResponse {
 			success: Boolean!
 			message: String
 		}

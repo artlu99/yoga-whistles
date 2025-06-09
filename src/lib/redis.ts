@@ -12,19 +12,6 @@ const redis = new Redis({
 	token: UPSTASH_REDIS_REST_TOKEN,
 });
 
-export const isValidNonce = async (
-	nonce: string | undefined,
-): Promise<boolean> => {
-	if (!nonce) return false;
-	const res = await redis.get(`nonce-${nonce}`);
-	return !!res;
-};
-
-export const invalidateNonce = async (nonce: string | undefined) => {
-	if (!nonce) return;
-	await redis.del(`nonce-${nonce}`);
-};
-
 export const enableChannel = async (channelId: string, channelUrl: string) => {
 	await redis.hset("channels", { [channelId]: channelUrl });
 	await redis.hdel("opted-out-channels", channelId);

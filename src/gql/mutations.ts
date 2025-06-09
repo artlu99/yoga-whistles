@@ -3,8 +3,6 @@ import { hasClientToken, isValidAuthHeader } from "../helpers";
 import {
 	disableChannel,
 	enableChannel,
-	invalidateNonce,
-	isValidNonce,
 } from "../lib/redis";
 import { tursoClient } from "../lib/turso";
 import type { CFContext } from "../types";
@@ -25,30 +23,18 @@ const checkToken = async (
 ): Promise<void> => {
 	const isTokenValid = await isValidAuthHeader(request?.headers);
 	if (!isTokenValid) {
+		console.error("Invalid or expired token");
 		throw new Error("Invalid or expired token");
 	}
 };
 
-const checkNonce = async (nonce: string | undefined): Promise<void> => {
-	const nonceValidFlag = await isValidNonce(nonce);
-	if (!nonceValidFlag) {
-		throw new Error(`Invalid or expired nonce: ${nonce}`);
-	}
-	if (nonceValidFlag) {
-		if (!ALLOW_ANON_FIDS) {
-			await invalidateNonce(nonce);
-		}
-	}
-};
-
 export const Mutation = {
-	updateData: async (
+	writeData: async (
 		_: unknown,
 		{ input }: { input: AuthorizedPlaintextMessage },
 		{ env, request }: CFContext,
 	) => {
 		await checkToken(request);
-		await checkNonce(input.nonce);
 
 		const {
 			fid,

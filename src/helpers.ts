@@ -11,7 +11,10 @@ export const isValidAuthHeader = async (headers: Headers) => {
 	if (!authorization) return false;
 
 	const token = authorization.split(" ")[1]; // Extract token from "Bearer <token>"
-	if (!token) return false;
+	if (!token) {
+		console.error("No token found");
+		return false;
+	}
 
 	return await verifyToken(token);
 };
