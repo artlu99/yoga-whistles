@@ -70,6 +70,7 @@ export const schema = createSchema({
 			messageHash: String!
 			text: String!
 			hashedText: String!
+			secret: String
 		}
 
 		type WriteDataResponse {
