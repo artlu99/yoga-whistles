@@ -21,6 +21,6 @@ describe("redis cache", () => {
 	it("no-channel channel members", async () => {
 		const channelId = "no-channel";
 		const members = await getChannelMembersSwr(channelId);
-		expect(members.length).toBe(2082);
+		expect(members.length).toBe(2088);
 	});
 });

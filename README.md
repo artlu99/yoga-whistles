@@ -1,4 +1,4 @@
-<p align="center"><img src="https://github.com/dotansimha/graphql-yoga/raw/master/website/public/banner.svg" width="350" /></p>
+<p align="center"><img src="https://github.com/graphql-hive/graphql-yoga/raw/main/website/public/cover.png" width="350" /></p>
 
 # GraphQL Yoga for Cloudflare Workers (Wrangler template)
 
